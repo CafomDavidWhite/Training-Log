@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1117">
+<title>Training Log</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#0d1117;
+    --panel:#161b22;
+    --panel-2:#1c2330;
+    --line:#283142;
+    --ink:#e8edf3;
+    --muted:#8a97a8;
+    --accent:#39d98a;
+    --accent-dim:#1f6f4d;
+    --hot:#ff7849;
+    --hot-dim:#5c3022;
+    --radius:14px;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif}
+  body{padding-bottom:calc(86px + var(--safe-b));max-width:680px;margin:0 auto;min-height:100vh}
+  body.no-nav{padding-bottom:0}
+
+  /* Header */
+  header{
+    position:sticky;top:0;z-index:20;
+    background:linear-gradient(180deg,rgba(13,17,23,.96),rgba(13,17,23,.78));
+    backdrop-filter:blur(12px);
+    padding:calc(env(safe-area-inset-top,0px) + 18px) 20px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .hd-top{display:flex;align-items:flex-start;gap:10px}
+  .hd-top .hd-main{flex:1;min-width:0}
+  .kicker{font-family:'Barlow Condensed';letter-spacing:.22em;text-transform:uppercase;font-size:12px;color:var(--accent);font-weight:600}
+  h1{font-family:'Barlow Condensed';font-weight:700;font-size:30px;line-height:.98;letter-spacing:.01em;margin-top:2px}
+  h1 span{color:var(--muted)}
+  .stat-row{display:flex;gap:18px;margin-top:10px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .stat-row b{color:var(--ink);font-family:'Barlow Condensed';font-size:16px;font-weight:600}
+  .who{font-family:'Barlow Condensed';font-weight:600;font-size:13px;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;flex:none;display:flex;align-items:center;gap:6px}
+  .who svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+  /* Views */
+  main{padding:18px 16px 8px}
+  .view{display:none;animation:fade .25s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .eyebrow{font-family:'Barlow Condensed';text-transform:uppercase;letter-spacing:.18em;font-size:12px;color:var(--muted);font-weight:600;margin:22px 4px 10px}
+  .eyebrow:first-child{margin-top:4px}
+
+  /* Day cards */
+  .day{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
+  .day-head{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;user-select:none}
+  .day-head .num{font-family:'Barlow Condensed';font-weight:700;font-size:13px;letter-spacing:.1em;color:var(--bg);background:var(--accent);border-radius:6px;padding:3px 7px;flex:none}
+  .day-head .num.opt{background:var(--hot)}
+  .day-title{font-family:'Barlow Condensed';font-weight:600;font-size:19px;letter-spacing:.01em;flex:1;line-height:1}
+  .day-title small{display:block;font-family:'Inter';font-size:11px;letter-spacing:0;color:var(--muted);font-weight:400;margin-top:3px}
+  .chev{color:var(--muted);transition:transform .2s;flex:none}
+  .day.open .chev{transform:rotate(90deg)}
+  .day-body{display:none;border-top:1px solid var(--line)}
+  .day.open .day-body{display:block}
+
+  .ex{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .ex:last-child{border-bottom:none}
+  .ex.done .ex-name{color:var(--muted);text-decoration:line-through}
+  .check{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);flex:none;display:grid;place-items:center;cursor:pointer;transition:.15s;background:var(--panel-2)}
+  .check.on{background:var(--accent);border-color:var(--accent)}
+  .check svg{opacity:0;transition:.15s}
+  .check.on svg{opacity:1}
+  .ex-main{flex:1;min-width:0}
+  .ex-name{font-size:14px;font-weight:500;line-height:1.25}
+  .ex-sets{font-size:12px;color:var(--muted);margin-top:2px}
+  .ex-sets b{color:var(--hot);font-weight:600}
+  .ex-note{font-size:11px;color:var(--accent);margin-top:3px;line-height:1.35;font-style:italic}
+  .vid{flex:none;width:34px;height:34px;border-radius:9px;background:var(--panel-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent);text-decoration:none}
+  .vid:active{background:var(--accent-dim)}
+
+  .reset-day{display:block;width:100%;text-align:center;padding:11px;background:transparent;border:none;border-top:1px solid var(--line);color:var(--muted);font-family:'Barlow Condensed';letter-spacing:.1em;text-transform:uppercase;font-size:12px;font-weight:600;cursor:pointer}
+  .reset-day:active{color:var(--hot)}
+
+  /* Forms */
+  label.fld{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-family:'Barlow Condensed';font-weight:600;margin-bottom:5px}
+  input,select,textarea{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:11px 12px;font-size:15px;font-family:'Inter';-webkit-appearance:none}
+  textarea{min-height:90px;resize:vertical;line-height:1.5}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  .full{grid-column:1/-1}
+  .btn{width:100%;background:var(--accent);color:#06231a;border:none;border-radius:10px;padding:13px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;margin-top:12px}
+  .btn:active{background:#2fbf76}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted)}
+  .btn:disabled{opacity:.55;cursor:default}
+
+  /* Log table */
+  .log-item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start}
+  .log-item .ex-n{font-weight:600;font-size:14px}
+  .log-item .meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .log-item .sets{font-family:'Barlow Condensed';font-size:15px;color:var(--accent);font-weight:600;margin-top:4px;letter-spacing:.02em}
+  .del{margin-left:auto;color:var(--muted);background:none;border:none;font-size:20px;cursor:pointer;line-height:1;padding:0 4px;flex:none}
+  .del:active{color:var(--hot)}
+  .empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 20px;border:1px dashed var(--line);border-radius:12px;line-height:1.5}
+
+  /* Routine */
+  .routine{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+  .rt-row{padding:12px 14px;border-bottom:1px solid var(--line)}
+  .rt-row:last-of-type{border-bottom:none}
+  .rt-top{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
+  .rt-name{font-size:14px;font-weight:600;flex:1;line-height:1.2}
+  .rt-target{font-family:'Barlow Condensed';font-size:13px;color:var(--hot);font-weight:600;flex:none}
+  .rt-last{font-size:11px;color:var(--muted);margin-bottom:9px;margin-top:-4px}
+  .rt-last b{color:var(--accent);font-weight:600}
+  .rt-inputs{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:7px}
+  .rt-inputs input{padding:9px 8px;font-size:15px;text-align:center}
+  .rt-inputs .ph{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:center;font-family:'Barlow Condensed';font-weight:600;margin-bottom:3px}
+  .rt-foot{display:flex;gap:10px;padding:14px}
+  .rt-foot .btn{margin:0}
+
+  /* Weigh-in */
+  .wi-add{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:8px}
+  .wi-row{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:9px}
+  .wi-row .d{font-size:12px;color:var(--muted);flex:1}
+  .wi-row .w{font-family:'Barlow Condensed';font-size:22px;font-weight:700}
+  .wi-row .chg{font-family:'Barlow Condensed';font-size:15px;font-weight:600;padding:3px 8px;border-radius:6px}
+  .chg.down{color:var(--accent);background:var(--accent-dim)}
+  .chg.up{color:var(--hot);background:var(--hot-dim)}
+  .chg.flat{color:var(--muted);background:var(--panel-2)}
+  .spark{height:64px;width:100%;margin:4px 0 16px}
+
+  /* Cards */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;margin-bottom:12px}
+  .card h3{font-family:'Barlow Condensed';font-size:17px;font-weight:600;letter-spacing:.02em;margin-bottom:3px}
+  .card .tag{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;font-family:'Barlow Condensed';font-weight:600}
+  .meal{padding:9px 0;border-bottom:1px solid var(--line);display:flex;gap:10px}
+  .meal:last-child{border-bottom:none}
+  .meal .lbl{font-family:'Barlow Condensed';font-weight:600;font-size:13px;color:var(--hot);width:64px;flex:none;padding-top:1px;text-transform:uppercase;letter-spacing:.04em}
+  .meal .txt{font-size:13px;line-height:1.4}
+  .meal .txt .m{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+
+  .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .pill{font-family:'Barlow Condensed';font-weight:600;letter-spacing:.04em;font-size:14px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+  .pill.on{background:var(--accent);border-color:var(--accent);color:#06231a}
+  .note-line{font-size:12px;color:var(--muted);line-height:1.5;padding:4px 2px}
+
+  /* Tabbar */
+  nav{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;background:rgba(22,27,34,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:var(--safe-b);max-width:680px;margin:0 auto}
+  nav button{flex:1;background:none;border:none;color:var(--muted);padding:9px 2px;font-family:'Inter';font-size:10px;font-weight:500;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.02em}
+  nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  nav button.on{color:var(--accent)}
+  .toast{position:fixed;bottom:calc(96px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);color:#06231a;font-family:'Barlow Condensed';font-weight:600;letter-spacing:.04em;padding:10px 20px;border-radius:999px;opacity:0;transition:.3s;pointer-events:none;z-index:50;font-size:15px}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* Report */
+  .rep-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+  .rep-card .rc-top{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+  .rep-card h3{font-family:'Barlow Condensed';font-size:18px;font-weight:600;flex:1}
+  .trend{font-family:'Barlow Condensed';font-size:15px;font-weight:700;padding:3px 9px;border-radius:6px;flex:none}
+  .trend.up{color:var(--accent);background:var(--accent-dim)}
+  .trend.flat{color:var(--muted);background:var(--panel-2)}
+  .trend.none{color:var(--muted);background:var(--panel-2);font-size:12px}
+  .bar-row{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:12px}
+  .bar-row .bl{width:130px;flex:none;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar-track{flex:1;height:8px;background:var(--panel-2);border-radius:4px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent-dim),var(--accent))}
+  .bar-fill.flat{background:var(--line)}
+  .bar-val{width:54px;flex:none;text-align:right;font-family:'Barlow Condensed';font-weight:600;color:var(--ink)}
+  .rep-card .sub{font-size:11px;color:var(--muted);margin-top:3px}
+  .focus-tag{display:inline-block;font-family:'Barlow Condensed';font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:5px;margin-top:8px}
+  .focus-tag.grow{color:var(--accent);background:var(--accent-dim)}
+  .focus-tag.stall{color:var(--hot);background:var(--hot-dim)}
+
+  /* AI card */
+  .ai-card{background:linear-gradient(155deg,#16211c,#161b22 60%);border:1px solid var(--accent-dim);border-radius:var(--radius);padding:16px;margin-bottom:6px}
+  .ai-head{display:flex;align-items:center;gap:8px;color:var(--accent);font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+  .ai-body{font-size:13.5px;line-height:1.6;color:var(--ink);margin-bottom:14px;white-space:pre-wrap}
+  .ai-body.muted{color:var(--muted)}
+  .ai-body h4{font-family:'Barlow Condensed';font-size:15px;color:var(--accent);letter-spacing:.04em;margin:12px 0 4px;text-transform:uppercase}
+  .ai-body strong{color:var(--accent)}
+  .spin{display:inline-block;width:15px;height:15px;border:2px solid var(--accent-dim);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* ===== AUTH SCREEN ===== */
+  .auth-wrap{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:32px 22px calc(40px + var(--safe-b));max-width:440px;margin:0 auto}
+  .auth-logo{font-family:'Barlow Condensed';letter-spacing:.22em;text-transform:uppercase;font-size:13px;color:var(--accent);font-weight:600;text-align:center}
+  .auth-wrap h1{font-size:38px;text-align:center;margin:4px 0 6px}
+  .auth-sub{text-align:center;color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:26px}
+  .auth-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+  .auth-card .fld{margin-top:14px}
+  .auth-card .fld:first-child{margin-top:0}
+  .auth-toggle{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}
+  .auth-toggle a{color:var(--accent);font-weight:600;cursor:pointer}
+  .auth-err{color:var(--hot);font-size:13px;text-align:center;margin-top:12px;min-height:18px;line-height:1.4}
+  .auth-note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:18px;text-align:center}
+  .seg{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:18px}
+  .seg button{flex:1;background:none;border:none;color:var(--muted);font-family:'Barlow Condensed';font-weight:600;font-size:15px;letter-spacing:.04em;text-transform:uppercase;padding:9px;border-radius:7px;cursor:pointer}
+  .seg button.on{background:var(--accent);color:#06231a}
+
+  /* ===== GOALS / PLAN BUILDER ===== */
+  .goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .chip{font-family:'Barlow Condensed';font-weight:600;font-size:13px;letter-spacing:.03em;padding:8px 13px;border-radius:999px;border:1px solid var(--line);background:var(--panel-2);color:var(--muted);cursor:pointer;user-select:none}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#06231a}
+  .plan-status{font-size:13px;color:var(--muted);line-height:1.6;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:4px}
+  .plan-status.good{border-color:var(--accent-dim);color:var(--ink)}
+  .plan-summary{font-size:13.5px;line-height:1.6;white-space:pre-wrap}
+  .plan-summary h4{font-family:'Barlow Condensed';font-size:15px;color:var(--accent);letter-spacing:.04em;margin:12px 0 4px;text-transform:uppercase}
+  .plan-summary strong{color:var(--accent)}
+
+  /* ===== COACH CHAT ===== */
+  .coach-launch{background:linear-gradient(155deg,#16211c,#161b22 60%);border:1px solid var(--accent-dim);border-radius:var(--radius);padding:15px 16px;margin-bottom:14px;display:flex;align-items:center;gap:13px;cursor:pointer}
+  .coach-launch .ci{width:42px;height:42px;border-radius:12px;background:var(--accent-dim);display:grid;place-items:center;flex:none;color:var(--accent)}
+  .coach-launch .ct{flex:1;min-width:0}
+  .coach-launch .ct b{font-family:'Barlow Condensed';font-size:17px;font-weight:600;letter-spacing:.02em;display:block}
+  .coach-launch .ct span{font-size:12px;color:var(--muted);display:block;margin-top:2px;line-height:1.4}
+  .coach-launch .arr{color:var(--muted)}
+
+  .chat-overlay{position:fixed;inset:0;z-index:60;background:var(--bg);display:none;flex-direction:column;max-width:680px;margin:0 auto}
+  .chat-overlay.open{display:flex}
+  .chat-head{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .chat-head .ci{width:36px;height:36px;border-radius:10px;background:var(--accent-dim);display:grid;place-items:center;flex:none;color:var(--accent)}
+  .chat-head .ct{flex:1}
+  .chat-head .ct b{font-family:'Barlow Condensed';font-size:17px;font-weight:600;display:block;line-height:1.1}
+  .chat-head .ct span{font-size:11px;color:var(--muted)}
+  .chat-close{background:none;border:none;color:var(--muted);font-size:26px;line-height:1;cursor:pointer;padding:4px 6px}
+  .chat-scroll{flex:1;overflow-y:auto;padding:16px 16px 8px;-webkit-overflow-scrolling:touch}
+  .msg{max-width:85%;padding:11px 14px;border-radius:15px;font-size:14px;line-height:1.5;margin-bottom:11px;white-space:pre-wrap;word-wrap:break-word}
+  .msg.user{background:var(--accent);color:#06231a;margin-left:auto;border-bottom-right-radius:5px;font-weight:500}
+  .msg.coach{background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:5px}
+  .msg.coach strong{color:var(--accent)}
+  .msg.coach h4{font-family:'Barlow Condensed';font-size:14px;color:var(--accent);letter-spacing:.04em;margin:8px 0 3px;text-transform:uppercase}
+  .quick-row{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 8px}
+  .quick{font-size:12px;color:var(--accent);background:var(--panel-2);border:1px solid var(--accent-dim);border-radius:999px;padding:7px 12px;cursor:pointer;line-height:1.3}
+  .chat-input-bar{display:flex;gap:9px;padding:12px 14px calc(12px + var(--safe-b));border-top:1px solid var(--line);background:var(--panel)}
+  .chat-input-bar textarea{min-height:46px;max-height:120px;border-radius:22px;padding:12px 16px;font-size:15px}
+  .chat-send{flex:none;width:46px;height:46px;border-radius:50%;background:var(--accent);border:none;color:#06231a;display:grid;place-items:center;cursor:pointer;align-self:flex-end}
+  .chat-send:disabled{opacity:.5}
+  .chat-send svg{width:20px;height:20px;stroke:#06231a;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+  .typing{display:inline-flex;gap:4px;align-items:center}
+  .typing span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bly 1.2s infinite}
+  .typing span:nth-child(2){animation-delay:.2s}
+  .typing span:nth-child(3){animation-delay:.4s}
+  @keyframes bly{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+
+  .backup-row{display:flex;gap:10px;margin-top:4px}
+  .backup-row .btn{margin:0}
+  #import-file{display:none}
+</style>
+</head>
+<body class="no-nav">
+
+<!-- ================= AUTH ================= -->
+<div class="auth-wrap" id="auth">
+  <div class="auth-logo">Your Personal Coach</div>
+  <h1>Training Log</h1>
+  <div class="auth-sub">Sign in to load your own private plan, logs and AI coach — kept separate from everyone else's.</div>
+
+  <div class="auth-card">
+    <div class="seg" id="auth-seg">
+      <button data-mode="login" class="on">Sign in</button>
+      <button data-mode="signup">Create account</button>
+    </div>
+
+    <label class="fld">Name</label>
+    <input id="au-name" autocomplete="off" placeholder="e.g. Alex">
+
+    <div class="fld" id="au-pass-wrap">
+      <label class="fld" style="margin-bottom:5px">Password</label>
+      <input id="au-pass" type="password" autocomplete="off" placeholder="Choose a personal code">
+    </div>
+
+    <button class="btn" id="au-go">Sign in</button>
+    <div class="auth-err" id="au-err"></div>
+    <div class="auth-toggle" id="au-toggle"></div>
+  </div>
+
+  <div class="auth-note">
+    Heads up: this is a lightweight personal login that keeps each person's data in their own space on this device — it is <b>not</b> bank-grade security and isn't sent to any server. Please don't reuse an important password here. Your data lives in this browser; use Export Backup to move between devices.
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" style="display:none">
+<header>
+  <div class="hd-top">
+    <div class="hd-main">
+      <div class="kicker" id="hKicker">Your Plan</div>
+      <h1>Training Log <span id="hMode"></span></h1>
+      <div class="stat-row">
+        <div>Latest <b id="hWeight">—</b> kg</div>
+        <div id="hGoalStat">Goal <b>—</b></div>
+      </div>
+    </div>
+    <button class="who" id="whoBtn">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+      <span id="whoName">—</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- GOALS / PLAN -->
+  <section class="view active" id="v-goals">
+    <div class="eyebrow" style="margin-top:4px">Tell the coach what you want</div>
+    <div class="card">
+      <label class="fld">Primary goal</label>
+      <div class="chip-row" id="goal-chips"></div>
+
+      <label class="fld" style="margin-top:14px">Experience</label>
+      <div class="chip-row" id="exp-chips"></div>
+
+      <div class="goal-grid" style="margin-top:14px">
+        <div><label class="fld">Age</label><input id="g-age" inputmode="numeric" placeholder="e.g. 34"></div>
+        <div><label class="fld">Days / week</label><input id="g-days" inputmode="numeric" placeholder="e.g. 4"></div>
+        <div><label class="fld">Height (cm)</label><input id="g-height" inputmode="numeric" placeholder="e.g. 178"></div>
+        <div><label class="fld">Weight (kg)</label><input id="g-weight" inputmode="decimal" placeholder="e.g. 82"></div>
+      </div>
+
+      <label class="fld" style="margin-top:14px">Equipment</label>
+      <div class="chip-row" id="equip-chips"></div>
+
+      <label class="fld" style="margin-top:14px">Anything else? Injuries, sports, preferences, target date…</label>
+      <textarea id="g-notes" placeholder="e.g. I play soccer Saturdays, dodgy right shoulder, want abs by summer, no barbell at home."></textarea>
+
+      <button class="btn" id="g-build">Build my plan with AI</button>
+      <div class="plan-status" id="plan-status" style="margin-top:12px">No plan yet — fill this in and tap build. The coach designs a split tailored to you.</div>
+    </div>
+
+    <div id="plan-summary-wrap" style="display:none">
+      <div class="eyebrow">Your tailored plan</div>
+      <div class="ai-card">
+        <div class="ai-head">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.5 3.4L16.6 18 12 14.8 7.4 18l1.6-5.6L4.5 9l5.6-.4z"/></svg>
+          <span>Coach's plan</span>
+        </div>
+        <div class="plan-summary" id="plan-summary"></div>
+      </div>
+      <div class="note-line">Plan saved. Your Workout and Log tabs now use these exercises. Tweak anything above and rebuild any time.</div>
+    </div>
+  </section>
+
+  <!-- WORKOUT -->
+  <section class="view" id="v-workout">
+    <div class="coach-launch" id="coach-launch-w">
+      <div class="ci"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="ct"><b>Ask your coach</b><span>Sore shoulder? Tweak today's session? Ask before you start.</span></div>
+      <div class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div>
+    </div>
+    <div id="workout-body"></div>
+  </section>
+
+  <!-- LOG -->
+  <section class="view" id="v-log">
+    <div class="eyebrow" style="margin-top:4px">Pick today's session</div>
+    <div class="pill-row" id="log-day-pills"></div>
+    <div id="log-routine"></div>
+    <div class="eyebrow">History</div>
+    <div id="log-list"></div>
+  </section>
+
+  <!-- WEIGH IN -->
+  <section class="view" id="v-weight">
+    <div class="eyebrow" style="margin-top:4px">Add weigh-in</div>
+    <div class="wi-add">
+      <input id="wi-val" inputmode="decimal" placeholder="Weight in kg (e.g. 82.4)">
+      <button class="btn" style="margin:0;width:auto;padding:13px 20px" id="wi-save">Add</button>
+    </div>
+    <div class="note-line">Weigh the same day &amp; time each week — morning, after the toilet, is most consistent.</div>
+    <svg class="spark" id="spark" viewBox="0 0 320 64" preserveAspectRatio="none"></svg>
+    <div class="eyebrow">Log</div>
+    <div id="wi-list"></div>
+  </section>
+
+  <!-- REPORT -->
+  <section class="view" id="v-report">
+    <div class="eyebrow" style="margin-top:4px">Progress insight</div>
+    <div class="ai-card" id="ai-card">
+      <div class="ai-head">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.5 3.4L16.6 18 12 14.8 7.4 18l1.6-5.6L4.5 9l5.6-.4z"/></svg>
+        <span>Coach's read</span>
+      </div>
+      <div id="ai-body" class="ai-body">Tap below and I'll look over everything you've logged — which lifts are climbing, which have stalled, and where to put your focus.</div>
+      <button class="btn" id="ai-run">Analyse my progress</button>
+    </div>
+
+    <div class="eyebrow">View by</div>
+    <div class="pill-row" id="rep-mode">
+      <button class="pill on" data-m="day">Workout day</button>
+      <button class="pill" data-m="ex">Exercise</button>
+    </div>
+    <div id="rep-body"></div>
+
+    <div class="eyebrow">Backup &amp; account</div>
+    <div class="card">
+      <div class="txt" style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">Your data is saved in this browser. Export a backup file now and then so you never lose your history — then Import it on a new device.</div>
+      <div class="backup-row">
+        <button class="btn ghost" id="bk-export">Export backup</button>
+        <button class="btn" id="bk-import-btn">Import backup</button>
+      </div>
+      <input type="file" id="import-file" accept="application/json,.json">
+      <button class="btn ghost" id="logout-btn" style="margin-top:10px">Sign out</button>
+    </div>
+    <div class="note-line" style="margin-top:6px">General guidance, not medical advice. See a GP before a calorie deficit, new supplements, or training around an injury.</div>
+  </section>
+</main>
+
+<nav>
+  <button data-v="goals" class="on">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>Plan</button>
+  <button data-v="workout">
+    <svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h2M4 15h2M18 9h2M18 15h2M6 12h12"/></svg>Workout</button>
+  <button data-v="log">
+    <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Log</button>
+  <button data-v="weight">
+    <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18 9 9 0 000-18z"/><path d="M12 8v4l3 2"/></svg>Weight</button>
+  <button data-v="report">
+    <svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3"/></svg>Report</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<!-- ============ COACH CHAT OVERLAY ============ -->
+<div class="chat-overlay" id="chat">
+  <div class="chat-head">
+    <div class="ci"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.5 3.4L16.6 18 12 14.8 7.4 18l1.6-5.6L4.5 9l5.6-.4z"/></svg></div>
+    <div class="ct"><b>Your Coach</b><span id="chat-sub">Real-time, knows your plan &amp; logs</span></div>
+    <button class="chat-close" id="chat-close">×</button>
+  </div>
+  <div class="chat-scroll" id="chat-scroll"></div>
+  <div class="quick-row" id="chat-quick"></div>
+  <div class="chat-input-bar">
+    <textarea id="chat-input" rows="1" placeholder="Ask anything — sore shoulder, swap an exercise, how's my form…"></textarea>
+    <button class="chat-send" id="chat-send"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </div>
+</div>
+</div>
+
+<script>
+/* ============================================================
+   MULTI-USER TRAINING LOG
+   ============================================================ */
+
+/* ============================================================
+   ⚙️  CONFIG — set this to your Cloudflare Worker URL.
+   Until you paste your real Worker URL here, the AI features
+   (plan builder + coach chat) will show a friendly error.
+   Example: "https://training-log-proxy.yourname.workers.dev"
+   ============================================================ */
+const PROXY_URL = "https://trainin-log-query.whiteda.workers.dev/";
+const AI_READY = /^https?:\/\//.test(PROXY_URL) && !PROXY_URL.includes("PASTE_YOUR");
+
+/* ---------- AUTH STATE ---------- */
+let CURRENT=null;          // current username (key)
+let authMode='login';
+
+/* lightweight hash — NOT real security, just a separator */
+async function hash(str){
+  try{
+    const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }catch(e){
+    // fallback if crypto.subtle unavailable (insecure context)
+    let h=0;for(let i=0;i<str.length;i++){h=(h<<5)-h+str.charCodeAt(i);h|=0}
+    return 'f'+(h>>>0).toString(16);
+  }
+}
+function userKey(name){return name.trim().toLowerCase().replace(/[^a-z0-9]/g,'_')}
+
+/* ---------- PER-USER STORAGE ---------- */
+const DB={
+  _k:(k)=>'tl_'+CURRENT+'_'+k,
+  get:(k,f)=>{try{const v=localStorage.getItem(DB._k(k));return v?JSON.parse(v):f}catch(e){return f}},
+  set:(k,v)=>{try{localStorage.setItem(DB._k(k),JSON.stringify(v))}catch(e){}},
+  del:(k)=>{try{localStorage.removeItem(DB._k(k))}catch(e){}}
+};
+/* account registry (shared, stores only hashed passwords) */
+const ACC={
+  all:()=>{try{return JSON.parse(localStorage.getItem('tl_accounts')||'{}')}catch(e){return {}}},
+  save:(o)=>localStorage.setItem('tl_accounts',JSON.stringify(o))
+};
+
+/* ---------- APP DATA (loaded per user) ---------- */
+let profile,plan,checks,logs,weights,openDay,logDay,repMode,chatHist;
+
+function loadUserData(){
+  profile = DB.get('profile',{});
+  plan    = DB.get('plan',null);       // {mode, summary, days:[{t,sub,opt,ex:[{name,sets,v,note}]}]}
+  checks  = DB.get('checks',{});
+  logs    = DB.get('logs',[]);
+  weights = DB.get('weights',[]);
+  openDay = DB.get('openDay',0);
+  logDay  = DB.get('logDay',0);
+  repMode = DB.get('repMode','day');
+  chatHist= DB.get('chatHist',[]);
+}
+
+/* ---------- HELPERS ---------- */
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+const fmtDate=ts=>new Date(ts).toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600)}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function mdToHtml(t){
+  return t.split('\n').map(l=>{
+    l=l.trim();
+    if(l.startsWith('### '))return '<h4>'+esc(l.slice(4))+'</h4>';
+    if(l.startsWith('## '))return '<h4>'+esc(l.slice(3))+'</h4>';
+    if(l.startsWith('# '))return '<h4>'+esc(l.slice(2))+'</h4>';
+    if(l.startsWith('- ')||l.startsWith('* '))return '• '+esc(l.slice(2));
+    if(!l)return '';
+    return esc(l);
+  }).filter(x=>x!=='').join('<br>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+}
+const YT="https://www.youtube.com/results?search_query=";
+const ytLink=q=>YT+encodeURIComponent(q+" proper form tutorial");
+
+/* ============================================================
+   AUTH UI
+   ============================================================ */
+function setAuthMode(m){
+  authMode=m;
+  $$('#auth-seg button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
+  $('#au-go').textContent=m==='login'?'Sign in':'Create account';
+  $('#au-toggle').innerHTML=m==='login'
+    ? `New here? <a id="sw">Create an account</a>`
+    : `Already have one? <a id="sw">Sign in</a>`;
+  $('#sw').onclick=()=>setAuthMode(m==='login'?'signup':'login');
+  $('#au-err').textContent='';
+}
+$$('#auth-seg button').forEach(b=>b.onclick=()=>setAuthMode(b.dataset.mode));
+
+$('#au-go').onclick=async()=>{
+  const name=$('#au-name').value.trim();
+  const pass=$('#au-pass').value;
+  const err=$('#au-err');err.textContent='';
+  if(name.length<2){err.textContent='Enter your name.';return}
+  if(pass.length<3){err.textContent='Password needs at least 3 characters.';return}
+  const key=userKey(name);
+  if(!key){err.textContent='Use letters or numbers in your name.';return}
+  const accounts=ACC.all();
+  const h=await hash(key+'|'+pass);
+  if(authMode==='signup'){
+    if(accounts[key]){err.textContent='That name already exists — sign in instead.';return}
+    accounts[key]={h,display:name,created:Date.now()};
+    ACC.save(accounts);
+    enterApp(key,name,true);
+  }else{
+    if(!accounts[key]){err.textContent='No account with that name. Create one?';return}
+    if(accounts[key].h!==h){err.textContent='Wrong password. Try again.';return}
+    enterApp(key,accounts[key].display||name,false);
+  }
+};
+// allow Enter key
+$('#au-pass').addEventListener('keydown',e=>{if(e.key==='Enter')$('#au-go').click()});
+
+function enterApp(key,display,isNew){
+  CURRENT=key;
+  localStorage.setItem('tl_lastUser',key);
+  loadUserData();
+  if(display&&!profile.display){profile.display=display;DB.set('profile',profile)}
+  $('#auth').style.display='none';
+  $('#app').style.display='block';
+  document.body.classList.remove('no-nav');
+  $('#whoName').textContent=profile.display||display;
+  initApp(isNew);
+}
+
+function logout(){
+  CURRENT=null;
+  localStorage.removeItem('tl_lastUser');
+  $('#app').style.display='none';
+  $('#auth').style.display='flex';
+  document.body.classList.add('no-nav');
+  $('#au-name').value='';$('#au-pass').value='';
+  setAuthMode('login');
+  window.scrollTo(0,0);
+}
+
+/* auto-resume last user (no password re-entry needed on same device) */
+(function resume(){
+  const last=localStorage.getItem('tl_lastUser');
+  const accounts=ACC.all();
+  if(last&&accounts[last]){
+    CURRENT=last;loadUserData();
+    $('#auth').style.display='none';$('#app').style.display='block';
+    document.body.classList.remove('no-nav');
+    $('#whoName').textContent=accounts[last].display||last;
+    initApp(false);
+  }else{
+    setAuthMode('login');
+  }
+})();
+
+/* ============================================================
+   GOAL CHIPS
+   ============================================================ */
+const GOAL_OPTS=['Build muscle','Lose fat','Get stronger','General fitness','Sport performance','Recomp (both)'];
+const EXP_OPTS=['Beginner','Intermediate','Advanced'];
+const EQUIP_OPTS=['Full gym','Dumbbells','Barbell','Kettlebell','Bands','Bodyweight only'];
+let goalSel={goal:'',exp:'',equip:[]};
+
+function renderChips(){
+  const g=$('#goal-chips'),e=$('#exp-chips'),q=$('#equip-chips');
+  g.innerHTML=GOAL_OPTS.map(o=>`<span class="chip${goalSel.goal===o?' on':''}" data-g="${o}">${o}</span>`).join('');
+  e.innerHTML=EXP_OPTS.map(o=>`<span class="chip${goalSel.exp===o?' on':''}" data-e="${o}">${o}</span>`).join('');
+  q.innerHTML=EQUIP_OPTS.map(o=>`<span class="chip${goalSel.equip.includes(o)?' on':''}" data-q="${o}">${o}</span>`).join('');
+  g.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{goalSel.goal=c.dataset.g;renderChips()});
+  e.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{goalSel.exp=c.dataset.e;renderChips()});
+  q.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+    const v=c.dataset.q;const i=goalSel.equip.indexOf(v);
+    if(i<0)goalSel.equip.push(v);else goalSel.equip.splice(i,1);renderChips();
+  });
+}
+function loadGoalsForm(){
+  goalSel={goal:profile.goal||'',exp:profile.exp||'',equip:profile.equip||[]};
+  $('#g-age').value=profile.age||'';
+  $('#g-days').value=profile.days||'';
+  $('#g-height').value=profile.height||'';
+  $('#g-weight').value=profile.weight||'';
+  $('#g-notes').value=profile.notes||'';
+  renderChips();
+  if(plan&&plan.summary){
+    $('#plan-status').className='plan-status good';
+    $('#plan-status').textContent='Plan active: '+(plan.mode||'Custom split')+' · '+plan.days.length+' training days. Edit anything and rebuild to refresh.';
+    $('#plan-summary-wrap').style.display='block';
+    $('#plan-summary').innerHTML=mdToHtml(plan.summary);
+  }else{
+    $('#plan-status').className='plan-status';
+    $('#plan-status').textContent='No plan yet — fill this in and tap build. The coach designs a split tailored to you.';
+    $('#plan-summary-wrap').style.display='none';
+  }
+}
+</script>
+<script>
+/* ============================================================
+   AI PLAN BUILDER
+   ============================================================ */
+function collectGoals(){
+  return {
+    display:profile.display,
+    goal:goalSel.goal, exp:goalSel.exp, equip:goalSel.equip,
+    age:$('#g-age').value.trim(), days:$('#g-days').value.trim(),
+    height:$('#g-height').value.trim(), weight:$('#g-weight').value.trim(),
+    notes:$('#g-notes').value.trim()
+  };
+}
+async function callClaude(messages,maxTokens){
+  if(!AI_READY)throw new Error('proxy-not-set');
+  const res=await fetch(PROXY_URL,{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:maxTokens||1200,messages})
+  });
+  if(!res.ok)throw new Error('http '+res.status);
+  const data=await res.json();
+  return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+}
+
+$('#g-build').onclick=buildPlan;
+async function buildPlan(){
+  const g=collectGoals();
+  if(!g.goal){toast('Pick a primary goal');return}
+  if(!g.days){toast('How many days per week?');return}
+  // persist profile
+  Object.assign(profile,g);DB.set('profile',profile);
+  $('#hWeight').textContent=g.weight||'—';
+  $('#hGoalStat').innerHTML='Goal <b>'+(g.goal||'—')+'</b>';
+
+  const btn=$('#g-build');btn.disabled=true;btn.textContent='Designing your plan…';
+  const st=$('#plan-status');st.className='plan-status';st.innerHTML='<span class="spin"></span>The coach is building your split — give it a few seconds.';
+
+  const prompt=`You are an expert strength & conditioning coach. Design a personalised training plan for this person.
+
+Person:
+- Name: ${g.display||'athlete'}
+- Primary goal: ${g.goal}
+- Experience: ${g.exp||'not stated'}
+- Age: ${g.age||'n/a'}, Height: ${g.height||'n/a'}cm, Weight: ${g.weight||'n/a'}kg
+- Training days/week available: ${g.days}
+- Equipment: ${g.equip.join(', ')||'not stated'}
+- Extra context (injuries, sports, preferences, targets): ${g.notes||'none given'}
+
+Return ONLY valid JSON (no markdown fences, no commentary) in exactly this shape:
+{
+  "mode": "short name for the split e.g. Push/Pull/Legs",
+  "summary": "A 90-140 word markdown summary addressed to them. Use ## headers and - bullets. Cover: the split logic, weekly structure, how it targets their goal, one nutrition pointer, and one note about any injury/sport they mentioned.",
+  "days": [
+    {
+      "t": "Day title e.g. Push",
+      "sub": "muscles or focus, short",
+      "opt": false,
+      "ex": [
+        {"name":"Exercise name","sets":"3 × 8-12","note":"optional 6-10 word cue, especially if it protects a stated injury"}
+      ]
+    }
+  ]
+}
+
+Rules: Number of day objects must match their available days (${g.days}). 5-7 exercises per day. Respect their equipment and any injuries (swap risky moves, add a protective note). Keep exercise names standard so form videos can be found. Mark a genuinely optional extra day with "opt": true.`;
+
+  try{
+    let txt=await callClaude([{role:'user',content:prompt}],1600);
+    txt=txt.replace(/```json/gi,'').replace(/```/g,'').trim();
+    const obj=JSON.parse(txt);
+    if(!obj.days||!obj.days.length)throw new Error('no days');
+    // attach youtube links
+    obj.days.forEach(d=>{d.ex.forEach(e=>{e.v=ytLink(e.name.replace(/\(.*?\)/g,'').trim())})});
+    plan=obj;DB.set('plan',plan);
+    // reset positional state for the new plan
+    openDay=0;logDay=0;checks={};
+    DB.set('openDay',0);DB.set('logDay',0);DB.set('checks',checks);
+    loadGoalsForm();renderWorkout();renderRoutine();renderLog();
+    setMode(plan.mode);
+    toast('Plan ready!');
+    window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+  }catch(err){
+    st.className='plan-status';
+    st.textContent=(err&&err.message==='proxy-not-set')
+      ? "The AI plan builder isn't connected yet — whoever set up this site needs to add the Worker URL (see DEPLOY.md). You can still use the Workout, Log, Weight and Report tabs."
+      : "Couldn't build the plan just now — this needs an internet connection and works when the page is opened online. Try again in a moment.";
+  }finally{btn.disabled=false;btn.textContent='Build my plan with AI';}
+}
+function setMode(m){$('#hMode').textContent='';$('#hKicker').textContent=m||'Your Plan'}
+
+/* ============================================================
+   WORKOUT VIEW
+   ============================================================ */
+function needPlan(el,msg){
+  el.innerHTML=`<div class="empty">${msg}<br><br>Head to the <b>Plan</b> tab and build one with the coach.</div>`;
+}
+function renderWorkout(){
+  const c=$('#workout-body');
+  if(!plan){needPlan(c,"No plan yet.");return}
+  c.innerHTML='';
+  plan.days.forEach((day,di)=>{
+    const open=di===openDay;
+    const el=document.createElement('div');
+    el.className='day'+(open?' open':'');
+    const doneCount=day.ex.filter((_,ei)=>checks[di+'-'+ei]).length;
+    el.innerHTML=`
+      <div class="day-head">
+        <span class="num${day.opt?' opt':''}">D${di+1}</span>
+        <span class="day-title">${esc(day.t)}<small>${esc(day.sub||'')} · ${doneCount}/${day.ex.length} done</small></span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+      <div class="day-body">
+        ${day.ex.map((e,ei)=>{
+          const on=checks[di+'-'+ei];
+          return `<div class="ex${on?' done':''}">
+            <div class="check${on?' on':''}" data-c="${di}-${ei}">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#06231a" stroke-width="3.5"><path d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div class="ex-main"><div class="ex-name">${esc(e.name)}</div><div class="ex-sets"><b>${esc(e.sets||'')}</b></div>${e.note?`<div class="ex-note">${esc(e.note)}</div>`:''}</div>
+            <a class="vid" href="${e.v}" target="_blank" rel="noopener" title="Form video">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </a>
+          </div>`}).join('')}
+        <button class="reset-day" data-reset="${di}">Clear ${esc(day.t)} ticks</button>
+      </div>`;
+    el.querySelector('.day-head').onclick=()=>{openDay=open?-1:di;DB.set('openDay',openDay);renderWorkout()};
+    el.querySelectorAll('.check').forEach(ch=>ch.onclick=e=>{
+      e.stopPropagation();const k=ch.dataset.c;checks[k]=!checks[k];if(!checks[k])delete checks[k];DB.set('checks',checks);renderWorkout();
+    });
+    el.querySelector('[data-reset]').onclick=e=>{
+      e.stopPropagation();day.ex.forEach((_,ei)=>delete checks[di+'-'+ei]);DB.set('checks',checks);renderWorkout();toast(day.t+' cleared');
+    };
+    c.appendChild(el);
+  });
+}
+
+/* ============================================================
+   LOG VIEW
+   ============================================================ */
+function lastEntry(name){for(let i=logs.length-1;i>=0;i--){if(logs[i].ex===name)return logs[i]}return null}
+function renderLogDayPills(){
+  const p=$('#log-day-pills');
+  if(!plan){p.innerHTML='';return}
+  p.innerHTML=plan.days.map((d,i)=>`<button class="pill${i===logDay?' on':''}" data-ld="${i}">${esc(d.t)}</button>`).join('');
+  p.querySelectorAll('.pill').forEach(b=>b.onclick=()=>{logDay=+b.dataset.ld;DB.set('logDay',logDay);renderRoutine()});
+}
+function renderRoutine(){
+  renderLogDayPills();
+  const c=$('#log-routine');
+  if(!plan){c.innerHTML='';return}
+  if(logDay>=plan.days.length)logDay=0;
+  const day=plan.days[logDay];
+  c.innerHTML=`<div class="routine">
+    ${day.ex.map((e,i)=>{
+      const clean=e.name.replace(/ ?\(.*?\)/g,'').trim();
+      const last=lastEntry(clean);
+      const lastTxt=last?`Last: <b>${last.wt?last.wt+'kg':'—'}</b> ${[last.s1,last.s2,last.s3].filter(Boolean).join('·')||''} reps`:'No history yet';
+      return `<div class="rt-row" data-i="${i}">
+        <div class="rt-top"><div class="rt-name">${esc(clean)}</div><div class="rt-target">${esc(e.sets||'')}</div></div>
+        <div class="rt-last">${lastTxt}</div>
+        <div class="rt-inputs">
+          <div><div class="ph">kg</div><input data-f="wt" inputmode="decimal" placeholder="${last&&last.wt?last.wt:''}"></div>
+          <div><div class="ph">set 1</div><input data-f="s1" inputmode="numeric" placeholder="${last?last.s1||'':''}"></div>
+          <div><div class="ph">set 2</div><input data-f="s2" inputmode="numeric" placeholder="${last?last.s2||'':''}"></div>
+          <div><div class="ph">set 3</div><input data-f="s3" inputmode="numeric" placeholder="${last?last.s3||'':''}"></div>
+        </div>
+      </div>`}).join('')}
+    <div class="rt-foot">
+      <button class="btn ghost" id="rt-clear">Clear</button>
+      <button class="btn" id="rt-save">Save ${esc(day.t)} session</button>
+    </div>
+  </div>`;
+  $('#rt-clear').onclick=()=>{c.querySelectorAll('.rt-inputs input').forEach(i=>i.value='')};
+  $('#rt-save').onclick=()=>{
+    let saved=0;const ts=Date.now();
+    c.querySelectorAll('.rt-row').forEach(row=>{
+      const i=+row.dataset.i;const clean=day.ex[i].name.replace(/ ?\(.*?\)/g,'').trim();
+      const g=f=>row.querySelector(`[data-f="${f}"]`).value.trim();
+      const wt=g('wt'),s1=g('s1'),s2=g('s2'),s3=g('s3');
+      if(wt||s1||s2||s3){logs.push({ex:clean,day:day.t,wt,s1,s2,s3,ts});saved++}
+    });
+    if(!saved){toast('Fill in at least one exercise');return}
+    DB.set('logs',logs);renderRoutine();renderLog();toast(saved+' exercise'+(saved>1?'s':'')+' logged');
+    window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+  };
+}
+function renderLog(){
+  const c=$('#log-list');
+  if(!logs.length){c.innerHTML='<div class="empty">Nothing logged yet. Pick a day above, punch in your weights and reps, and save the session.</div>';return}
+  c.innerHTML=logs.slice().reverse().map((l,ri)=>{
+    const idx=logs.length-1-ri;
+    const reps=[l.s1,l.s2,l.s3].filter(Boolean).join(' · ');
+    return `<div class="log-item">
+      <div>
+        <div class="ex-n">${esc(l.ex)}</div>
+        <div class="meta">${esc(l.day)} · ${fmtDate(l.ts)}</div>
+        <div class="sets">${l.wt?esc(l.wt)+' kg':''}${reps?'  →  '+esc(reps)+' reps':''}</div>
+      </div>
+      <button class="del" data-d="${idx}">×</button>
+    </div>`}).join('');
+  c.querySelectorAll('.del').forEach(b=>b.onclick=()=>{logs.splice(+b.dataset.d,1);DB.set('logs',logs);renderLog();renderRoutine()});
+}
+
+/* ============================================================
+   WEIGH-IN VIEW
+   ============================================================ */
+function renderWeight(){
+  const c=$('#wi-list');
+  if(weights.length){$('#hWeight').textContent=weights[weights.length-1].w}
+  if(!weights.length){c.innerHTML='<div class="empty">No weigh-ins yet. Add today\'s to start your trend.</div>';drawSpark();return}
+  c.innerHTML=weights.slice().reverse().map((w,ri)=>{
+    const idx=weights.length-1-ri;
+    let chg='',cls='flat';
+    if(idx>0){const d=+(w.w-weights[idx-1].w).toFixed(1);cls=d<0?'down':d>0?'up':'flat';chg=(d>0?'+':'')+d+' kg'}
+    else chg='start';
+    return `<div class="wi-row">
+      <div class="w">${w.w}</div>
+      <div class="d">${fmtDate(w.ts)}</div>
+      <div class="chg ${cls}">${chg}</div>
+      <button class="del" data-w="${idx}">×</button>
+    </div>`}).join('');
+  c.querySelectorAll('.del').forEach(b=>b.onclick=()=>{weights.splice(+b.dataset.w,1);DB.set('weights',weights);renderWeight()});
+  drawSpark();
+}
+function drawSpark(){
+  const s=$('#spark');
+  if(weights.length<2){s.innerHTML='';return}
+  const vals=weights.map(w=>+w.w),min=Math.min(...vals),max=Math.max(...vals),rng=(max-min)||1;
+  const W=320,H=64,pad=6;
+  const pts=vals.map((v,i)=>{const x=pad+i*(W-2*pad)/(vals.length-1);const y=H-pad-((v-min)/rng)*(H-2*pad);return [x,y]});
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=line+` L${W-pad} ${H} L${pad} ${H} Z`;
+  s.innerHTML=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#39d98a" stop-opacity=".28"/><stop offset="1" stop-color="#39d98a" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#g)"/><path d="${line}" fill="none" stroke="#39d98a" stroke-width="2"/>
+    ${pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.5" fill="#39d98a"/>`).join('')}`;
+}
+$('#wi-save').onclick=()=>{
+  const v=parseFloat($('#wi-val').value);
+  if(!v||v<30||v>400){toast('Enter a valid weight');return}
+  weights.push({w:v,ts:Date.now()});DB.set('weights',weights);$('#wi-val').value='';renderWeight();toast('Weigh-in added');
+};
+
+/* ============================================================
+   REPORT
+   ============================================================ */
+function e1rm(wt,reps){wt=parseFloat(wt);reps=parseInt(reps);if(!wt||!reps)return wt||0;return wt*(1+reps/30)}
+function bestSet(l){return Math.max(0,...[[l.wt,l.s1],[l.wt,l.s2],[l.wt,l.s3]].map(s=>e1rm(s[0],s[1])))}
+function exerciseProgress(){
+  const byEx={};
+  logs.slice().sort((a,b)=>a.ts-b.ts).forEach(l=>{
+    const est=bestSet(l);if(!est)return;
+    (byEx[l.ex]=byEx[l.ex]||{day:l.day,points:[]}).points.push({ts:l.ts,est,wt:parseFloat(l.wt)||0});
+  });
+  const out=[];
+  for(const ex in byEx){
+    const p=byEx[ex].points;if(p.length<1)continue;
+    const first=p[0].est,last=p[p.length-1].est;
+    const pct=first>0?((last-first)/first*100):0;
+    out.push({ex,day:byEx[ex].day,sessions:p.length,first,last,pct,firstWt:p[0].wt,lastWt:p[p.length-1].wt});
+  }
+  return out;
+}
+function renderReport(){
+  const body=$('#rep-body');
+  $('#rep-mode').querySelectorAll('.pill').forEach(b=>{
+    b.classList.toggle('on',b.dataset.m===repMode);
+    b.onclick=()=>{repMode=b.dataset.m;DB.set('repMode',repMode);renderReport()};
+  });
+  const prog=exerciseProgress();
+  if(!prog.length){body.innerHTML='<div class="empty">Log a few sessions across a couple of weeks and your growth breakdown shows up here.</div>';return}
+  if(repMode==='ex')renderReportByExercise(prog,body);else renderReportByDay(prog,body);
+}
+function pctBadge(pct,sessions){
+  if(sessions<2)return '<span class="trend none">1 session</span>';
+  if(pct>=1.5)return `<span class="trend up">▲ ${pct.toFixed(0)}%</span>`;
+  return `<span class="trend flat">— flat</span>`;
+}
+function renderReportByExercise(prog,body){
+  const sorted=prog.slice().sort((a,b)=>b.pct-a.pct);
+  const maxPct=Math.max(5,...sorted.map(p=>Math.abs(p.pct)));
+  body.innerHTML=sorted.map(p=>{
+    const w=Math.max(3,Math.abs(p.pct)/maxPct*100);
+    const flat=p.sessions<2||p.pct<1.5;
+    return `<div class="rep-card">
+      <div class="rc-top"><h3>${esc(p.ex)}</h3>${pctBadge(p.pct,p.sessions)}</div>
+      <div class="bar-row"><div class="bar-track"><div class="bar-fill ${flat?'flat':''}" style="width:${w}%"></div></div>
+        <div class="bar-val">${p.sessions<2?'—':(p.lastWt?p.lastWt+'kg':'')}</div></div>
+      <div class="sub">${esc(p.day)} · ${p.sessions} session${p.sessions>1?'s':''}${p.sessions>1&&p.firstWt?` · ${p.firstWt}kg → ${p.lastWt}kg`:''}</div>
+      ${p.sessions>=2?`<span class="focus-tag ${flat?'stall':'grow'}">${flat?'Needs a push':'Growing'}</span>`:''}
+    </div>`}).join('');
+}
+function renderReportByDay(prog,body){
+  const days={};prog.forEach(p=>{(days[p.day]=days[p.day]||[]).push(p)});
+  const order=plan?plan.days.map(d=>d.t):[];
+  const keys=Object.keys(days).sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+  body.innerHTML=keys.map(day=>{
+    const items=days[day];
+    const rated=items.filter(p=>p.sessions>=2);
+    const avg=rated.length?rated.reduce((s,p)=>s+p.pct,0)/rated.length:0;
+    const top=items.slice().sort((a,b)=>b.pct-a.pct)[0];
+    const lag=rated.slice().sort((a,b)=>a.pct-b.pct)[0];
+    const maxPct=Math.max(5,...items.map(p=>Math.abs(p.pct)));
+    return `<div class="rep-card">
+      <div class="rc-top"><h3>${esc(day)}</h3>${rated.length?(avg>=1.5?`<span class="trend up">▲ ${avg.toFixed(0)}% avg</span>`:'<span class="trend flat">— flat</span>'):'<span class="trend none">need 2+ logs</span>'}</div>
+      ${items.map(p=>{
+        const w=Math.max(3,Math.abs(p.pct)/maxPct*100);
+        const flat=p.sessions<2||p.pct<1.5;
+        return `<div class="bar-row"><div class="bl">${esc(p.ex)}</div><div class="bar-track"><div class="bar-fill ${flat?'flat':''}" style="width:${w}%"></div></div><div class="bar-val">${p.sessions<2?'1×':'▲'+p.pct.toFixed(0)+'%'}</div></div>`;
+      }).join('')}
+      ${rated.length?`<div style="margin-top:10px">${top&&top.pct>=1.5?`<span class="focus-tag grow">Best: ${esc(top.ex)}</span> `:''}${lag&&rated.length>1?`<span class="focus-tag stall">Focus: ${esc(lag.ex)}</span>`:''}</div>`:''}
+    </div>`}).join('');
+}
+
+/* ---------- progress AI read ---------- */
+function buildAISummary(){
+  const prog=exerciseProgress();
+  const lines=prog.map(p=>`${p.ex} (${p.day}): ${p.sessions} sessions, ${p.sessions>1?`${p.firstWt}kg→${p.lastWt}kg, est strength change ${p.pct>=0?'+':''}${p.pct.toFixed(0)}%`:'logged once'}`);
+  const w=weights.slice();let wt='No weigh-ins logged.';
+  if(w.length>=2){const d=(w[w.length-1].w-w[0].w).toFixed(1);wt=`Bodyweight: ${w[0].w}kg → ${w[w.length-1].w}kg over ${w.length} weigh-ins (${d>=0?'+':''}${d}kg).`}
+  else if(w.length===1)wt=`Bodyweight: ${w[0].w}kg (one weigh-in).`;
+  return{lines,wt,count:prog.length};
+}
+$('#ai-run').onclick=runAI;
+async function runAI(){
+  const sum=buildAISummary();
+  const bodyEl=$('#ai-body');const btn=$('#ai-run');
+  if(sum.count<1){bodyEl.className='ai-body muted';bodyEl.textContent='Log a couple of sessions first — once there\'s some history I can spot where you\'re growing and where you\'ve stalled.';return}
+  btn.disabled=true;btn.style.opacity=.6;
+  bodyEl.className='ai-body';bodyEl.innerHTML='<span class="spin"></span>Reading your training log…';
+  const p=profile;
+  const prompt=`You are ${p.display||'the user'}'s personal strength coach. Their goal is ${p.goal||'general fitness'} (experience: ${p.exp||'n/a'}, age ${p.age||'n/a'}, ${p.weight||'?'}kg). ${p.notes?'Context: '+p.notes:''}
+
+Logged data (estimated strength = weight x reps, Epley 1RM):
+${sum.wt}
+
+Exercise progress:
+${sum.lines.join('\n')}
+
+Give a short practical read in 3 sections using these exact markdown headers:
+## Where you're growing
+## Where you've stalled
+## Do this next
+Be specific to the exercises named. Under 180 words, plain and direct, no fluff, no disclaimers. Dash list under each header.`;
+  try{
+    const text=await callClaude([{role:'user',content:prompt}],1000);
+    if(!text)throw new Error('empty');
+    bodyEl.innerHTML=mdToHtml(text);
+  }catch(err){
+    bodyEl.className='ai-body muted';
+    bodyEl.innerHTML='Couldn\'t reach the coach right now. This needs an internet connection and works when you open the page online.';
+  }finally{btn.disabled=false;btn.style.opacity=1;btn.textContent='Re-analyse';}
+}
+
+/* ============================================================
+   COACH CHAT (real-time)
+   ============================================================ */
+const QUICK=['My shoulder feels sore today','I tweaked something at soccer','Swap an exercise I dislike','Am I progressing well?','Short on time today'];
+function coachContext(){
+  const p=profile;
+  let ctx=`Athlete: ${p.display||'user'}. Goal: ${p.goal||'general fitness'}. Experience: ${p.exp||'n/a'}. Age ${p.age||'n/a'}, ${p.height||'?'}cm, ${p.weight||'?'}kg. Trains ${p.days||'?'} days/week. Equipment: ${(p.equip||[]).join(', ')||'n/a'}. Notes: ${p.notes||'none'}.`;
+  if(plan){ctx+=`\nCurrent plan (${plan.mode}):\n`+plan.days.map(d=>`${d.t}: ${d.ex.map(e=>e.name).join(', ')}`).join('\n')}
+  const recent=logs.slice(-8).map(l=>`${l.ex} ${l.wt||''}kg ${[l.s1,l.s2,l.s3].filter(Boolean).join('/')}`).join('; ');
+  if(recent)ctx+=`\nRecent logged sets: ${recent}`;
+  if(weights.length)ctx+=`\nLatest bodyweight: ${weights[weights.length-1].w}kg.`;
+  return ctx;
+}
+function renderChat(){
+  const s=$('#chat-scroll');
+  s.innerHTML=chatHist.map(m=>`<div class="msg ${m.role==='user'?'user':'coach'}">${m.role==='user'?esc(m.content):mdToHtml(m.content)}</div>`).join('');
+  if(!chatHist.length){
+    s.innerHTML=`<div class="msg coach">Hey${profile.display?' '+esc(profile.display):''} — I'm your coach. I know your plan and your logs. Before or during a session, tell me what's going on: a sore joint, low energy, an injury from sport, or just "make today easier" — and I'll adjust. What's up today?</div>`;
+  }
+  // quick chips
+  $('#chat-quick').innerHTML=QUICK.map(q=>`<span class="quick">${q}</span>`).join('');
+  $('#chat-quick').querySelectorAll('.quick').forEach(c=>c.onclick=()=>{$('#chat-input').value=c.textContent;sendChat()});
+  s.scrollTop=s.scrollHeight;
+}
+function openChat(){$('#chat').classList.add('open');renderChat();setTimeout(()=>$('#chat-input').focus(),200)}
+function closeChat(){$('#chat').classList.remove('open')}
+$('#chat-close').onclick=closeChat;
+$('#coach-launch-w').onclick=openChat;
+
+const chatInput=$('#chat-input');
+chatInput.addEventListener('input',()=>{chatInput.style.height='auto';chatInput.style.height=Math.min(chatInput.scrollHeight,120)+'px'});
+chatInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
+$('#chat-send').onclick=sendChat;
+
+let chatBusy=false;
+async function sendChat(){
+  if(chatBusy)return;
+  const txt=chatInput.value.trim();if(!txt)return;
+  chatInput.value='';chatInput.style.height='auto';
+  chatHist.push({role:'user',content:txt});DB.set('chatHist',chatHist);
+  renderChat();
+  const s=$('#chat-scroll');
+  const t=document.createElement('div');t.className='msg coach';t.innerHTML='<span class="typing"><span></span><span></span><span></span></span>';
+  s.appendChild(t);s.scrollTop=s.scrollHeight;
+  chatBusy=true;$('#chat-send').disabled=true;
+
+  const system=`You are a knowledgeable, supportive personal fitness coach embedded in this person's training app. Be concise (usually 2-5 sentences, use short markdown bullets when listing). Give practical, specific coaching. You CAN suggest exercise swaps, intensity changes, warm-ups, mobility work, and recovery advice tailored to their plan. For pain or injury: be cautious, suggest gentle modifications or rest, and clearly recommend seeing a physio/GP if pain is sharp, persistent, or from a real injury — never diagnose. No long disclaimers.
+
+Here is everything you know about them:
+${coachContext()}`;
+  // last ~10 turns for context
+  const msgs=chatHist.slice(-10).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
+  try{
+    if(!AI_READY)throw new Error('proxy-not-set');
+    const res=await fetch(PROXY_URL,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:700,system,messages:msgs})
+    });
+    if(!res.ok)throw new Error('http');
+    const data=await res.json();
+    const reply=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim()||"Sorry, I didn't catch that — try again?";
+    chatHist.push({role:'coach',content:reply});DB.set('chatHist',chatHist);
+    t.remove();renderChat();
+  }catch(err){
+    t.remove();
+    const msg=(err&&err.message==='proxy-not-set')
+      ? "The AI coach isn't connected yet. Whoever set up this site needs to add the Worker URL (see DEPLOY.md). Everything else in the app works fine."
+      : "I couldn't reach the coach just now — this needs an internet connection. Try again in a moment.";
+    chatHist.push({role:'coach',content:msg});
+    DB.set('chatHist',chatHist);renderChat();
+  }finally{chatBusy=false;$('#chat-send').disabled=false}
+}
+
+/* ============================================================
+   BACKUP
+   ============================================================ */
+function exportBackup(){
+  const data={v:2,user:profile.display,exported:new Date().toISOString(),
+    profile,plan,checks,logs,weights,openDay,logDay,chatHist};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  const d=new Date().toISOString().slice(0,10);
+  a.href=url;a.download='training-log-'+userKey(profile.display||CURRENT)+'-'+d+'.json';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Backup exported');
+}
+function importBackup(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d||typeof d!=='object')throw new Error('bad');
+      if(!confirm('Restore this backup into your account? It replaces your current data on this device.'))return;
+      profile=d.profile||profile;plan=d.plan||plan;checks=d.checks||{};logs=d.logs||[];
+      weights=d.weights||[];openDay=d.openDay||0;logDay=d.logDay||0;chatHist=d.chatHist||[];
+      DB.set('profile',profile);DB.set('plan',plan);DB.set('checks',checks);DB.set('logs',logs);
+      DB.set('weights',weights);DB.set('openDay',openDay);DB.set('logDay',logDay);DB.set('chatHist',chatHist);
+      $('#whoName').textContent=profile.display||CURRENT;
+      initApp(false);toast('Backup restored');
+    }catch(err){toast('Couldn\'t read that file')}
+  };
+  r.readAsText(file);e.target.value='';
+}
+$('#bk-export').onclick=exportBackup;
+$('#bk-import-btn').onclick=()=>$('#import-file').click();
+$('#import-file').onchange=importBackup;
+$('#logout-btn').onclick=logout;
+$('#whoBtn').onclick=()=>{if(confirm('Sign out of '+(profile.display||'this account')+'? Your data stays saved on this device.'))logout()};
+
+/* ============================================================
+   NAV + INIT
+   ============================================================ */
+$$('nav button').forEach(b=>b.onclick=()=>{
+  $$('nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  $$('.view').forEach(v=>v.classList.remove('active'));
+  $('#v-'+b.dataset.v).classList.add('active');
+  if(b.dataset.v==='report')renderReport();
+  if(b.dataset.v==='goals')loadGoalsForm();
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+function goTo(v){$$('nav button').forEach(x=>x.classList.toggle('on',x.dataset.v===v));$$('.view').forEach(s=>s.classList.toggle('active','v-'+v===s.id))}
+
+function initApp(isNew){
+  // header
+  if(profile.weight)$('#hWeight').textContent=profile.weight;
+  $('#hGoalStat').innerHTML='Goal <b>'+(profile.goal||'—')+'</b>';
+  setMode(plan?plan.mode:'Your Plan');
+  // renders
+  loadGoalsForm();renderWorkout();renderRoutine();renderLog();renderWeight();renderReport();
+  // land on the right tab
+  if(!plan){goTo('goals')}else{goTo('workout')}
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
