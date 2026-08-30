@@ -272,6 +272,10 @@
   .seg button.on{background:var(--accent);color:#06231a}
 
   /* ===== GOALS / PLAN BUILDER ===== */
+  .goal-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .goal-tab{display:flex;align-items:center;gap:7px;font-family:'Barlow Condensed';font-weight:600;font-size:14px;letter-spacing:.02em;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+  .goal-tab.on{background:var(--accent);border-color:var(--accent);color:#06231a}
+  .goal-tab .star{font-size:11px}
   .goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
   .chip{font-family:'Barlow Condensed';font-weight:600;font-size:13px;letter-spacing:.03em;padding:8px 13px;border-radius:999px;border:1px solid var(--line);background:var(--panel-2);color:var(--muted);cursor:pointer;user-select:none}
@@ -376,7 +380,11 @@
 <main>
   <!-- GOALS / PLAN -->
   <section class="view active" id="v-goals">
-    <div class="eyebrow" style="margin-top:4px">Tell the coach what you want</div>
+    <div id="goal-switch-wrap" style="display:none">
+      <div class="eyebrow" style="margin-top:4px">Your goals</div>
+      <div class="goal-tabs" id="goal-tabs"></div>
+    </div>
+    <div class="eyebrow" id="form-eyebrow" style="margin-top:4px">Tell the coach what you want</div>
     <div class="card">
       <label class="fld">Primary goal</label>
       <div class="chip-row" id="goal-chips"></div>
@@ -398,6 +406,10 @@
       <textarea id="g-notes" placeholder="e.g. I play soccer Saturdays, dodgy right shoulder, want abs by summer, no barbell at home."></textarea>
 
       <button class="btn" id="g-build">Build my plan with AI</button>
+      <div class="backup-row" style="margin-top:10px">
+        <button class="btn ghost" id="g-new">+ New goal</button>
+        <button class="btn ghost" id="g-archive" style="display:none">Archive this goal</button>
+      </div>
       <div class="plan-status" id="plan-status" style="margin-top:12px">No plan yet — fill this in and tap build. The coach designs a split tailored to you.</div>
     </div>
 
@@ -570,7 +582,7 @@ const AI_READY = /^https?:\/\//.test(PROXY_URL) && !PROXY_URL.includes("PASTE_YO
    newer, force-reloads once with a fresh URL so iOS/Safari can't serve
    a stale home-screen copy.
    ============================================================ */
-const APP_VERSION = 16;   // <-- increment this each deploy (17, 18, ...)
+const APP_VERSION = 17;   // <-- increment this each deploy (18, 19, ...)
 (function checkForUpdate(){
   try{
     // only run on the live site, not file:// previews
@@ -623,6 +635,7 @@ const ACC={
 
 /* ---------- APP DATA (loaded per user) ---------- */
 let profile,plan,checks,logs,weights,openDay,logDay,repMode,chatHist,recipes,pinned,week;
+let goals,primaryId;  // goals: [{id,name,settings:{...},plan,archived}], primaryId = active goal id
 
 function loadUserData(){
   profile = DB.get('profile',{});
@@ -637,6 +650,48 @@ function loadUserData(){
   recipes = DB.get('recipes',[]);     // legacy one-off recipes (kept for compat)
   pinned  = DB.get('pinned',[]);      // favourites
   week    = DB.get('week',null);      // 7-day meal plan
+  goals   = DB.get('goals',null);
+  primaryId = DB.get('primaryId',null);
+  // --- migration: turn an existing single goal into the goals list ---
+  if(!goals){
+    goals=[];
+    if(profile.goal){
+      const g={id:'g'+Date.now(),name:profile.goal,settings:{
+        goal:profile.goal,exp:profile.exp||'',equip:profile.equip||[],
+        age:profile.age||'',days:profile.days||'',height:profile.height||'',
+        weight:profile.weight||'',notes:profile.notes||''
+      },plan:plan||null,archived:false};
+      goals.push(g);primaryId=g.id;
+    }
+    DB.set('goals',goals);DB.set('primaryId',primaryId);
+  }
+  // ensure a valid primary among active goals
+  syncPrimary();
+}
+function activeGoals(){return goals.filter(g=>!g.archived)}
+function currentGoal(){return goals.find(g=>g.id===primaryId)||activeGoals()[0]||null}
+function syncPrimary(){
+  const act=activeGoals();
+  if(!act.length){primaryId=null;profile=Object.assign(profile,{goal:'',exp:'',equip:[],days:'',age:'',height:'',weight:profile.weight||''});plan=null;return}
+  if(!act.find(g=>g.id===primaryId))primaryId=act[0].id;
+  const g=currentGoal();
+  if(g){
+    // reflect primary goal into profile/plan (keeps the rest of the app working unchanged)
+    profile=Object.assign(profile,g.settings);
+    plan=g.plan||null;
+  }
+  DB.set('primaryId',primaryId);
+}
+/* persist edits to the current goal's settings + plan */
+function saveCurrentGoal(){
+  const g=currentGoal();if(!g)return;
+  g.settings=Object.assign({},g.settings,{
+    goal:profile.goal,exp:profile.exp,equip:profile.equip,age:profile.age,
+    days:profile.days,height:profile.height,weight:profile.weight,notes:profile.notes
+  });
+  g.name=profile.goal||g.name;
+  g.plan=plan||g.plan;
+  DB.set('goals',goals);
 }
 
 /* ---------- HELPERS ---------- */
@@ -765,6 +820,7 @@ function loadGoalsForm(){
   $('#g-weight').value=profile.weight||'';
   $('#g-notes').value=profile.notes||'';
   renderChips();
+  renderGoalTabs();
   if(plan&&plan.summary){
     $('#plan-status').className='plan-status good';
     $('#plan-status').textContent='Plan active: '+(plan.mode||'Custom split')+' · '+plan.days.length+' training days. Edit anything and rebuild to refresh.';
@@ -776,6 +832,48 @@ function loadGoalsForm(){
     $('#plan-summary-wrap').style.display='none';
   }
 }
+function renderGoalTabs(){
+  const act=activeGoals();
+  const wrap=$('#goal-switch-wrap');
+  // show switcher + archive only when there's more than one, or any goal exists
+  $('#g-archive').style.display=act.length?'block':'none';
+  if(act.length<=1){wrap.style.display='none';return}
+  wrap.style.display='block';
+  const t=$('#goal-tabs');
+  t.innerHTML=act.map(g=>`<button class="goal-tab${g.id===primaryId?' on':''}" data-gid="${g.id}">${g.id===primaryId?'<span class="star">★</span>':''}${esc(g.name||g.settings.goal||'Goal')}</button>`).join('');
+  t.querySelectorAll('.goal-tab').forEach(b=>b.onclick=()=>switchGoal(b.dataset.gid));
+}
+function switchGoal(id){
+  // save what's on screen into the current goal first
+  Object.assign(profile,collectGoals());saveCurrentGoal();
+  primaryId=id;DB.set('primaryId',primaryId);
+  syncPrimary();
+  loadGoalsForm();renderWorkout();renderRoutine();renderLog();
+  setMode(plan?plan.mode:'Your Plan');updateHeaderGoal();
+  toast('Switched to '+(currentGoal().name||'goal'));
+}
+function newGoal(){
+  // persist current first
+  Object.assign(profile,collectGoals());saveCurrentGoal();
+  const g={id:'g'+Date.now(),name:'New goal',settings:{
+    goal:'',exp:'',equip:[],age:profile.age||'',days:'',height:profile.height||'',weight:profile.weight||'',notes:''
+  },plan:null,archived:false};
+  goals.push(g);primaryId=g.id;DB.set('goals',goals);DB.set('primaryId',primaryId);
+  syncPrimary();loadGoalsForm();renderWorkout();renderRoutine();
+  setMode('Your Plan');updateHeaderGoal();
+  window.scrollTo({top:0,behavior:'smooth'});
+  toast('New goal — set it up and build a plan');
+}
+function archiveGoal(){
+  const g=currentGoal();if(!g){return}
+  if(!confirm('Archive "'+(g.name||g.settings.goal||'this goal')+'"?\n\nYour logged sessions and weigh-ins are kept — only the goal & its plan are set aside.'))return;
+  g.archived=true;g.archivedAt=Date.now();DB.set('goals',goals);
+  syncPrimary();loadGoalsForm();renderWorkout();renderRoutine();renderLog();
+  setMode(plan?plan.mode:'Your Plan');updateHeaderGoal();
+  toast('Goal archived');
+}
+$('#g-new').onclick=newGoal;
+$('#g-archive').onclick=archiveGoal;
 
 /* ============================================================
    AI PLAN BUILDER
@@ -818,7 +916,7 @@ async function buildPlan(){
   // persist profile
   Object.assign(profile,g);DB.set('profile',profile);
   $('#hWeight').textContent=g.weight||'—';
-  $('#hGoalStat').innerHTML='Goal <b>'+(g.goal||'—')+'</b>';
+  updateHeaderGoal();
 
   const btn=$('#g-build');btn.disabled=true;btn.textContent='Designing your plan…';
   const st=$('#plan-status');st.className='plan-status';st.innerHTML='<span class="spin"></span>The coach is building your split — give it a few seconds.';
@@ -869,6 +967,7 @@ Rules: Number of day objects must match their available days (${g.days}). 5-7 ex
     // attach youtube links
     obj.days.forEach(d=>{d.ex.forEach(e=>{e.v=ytLink(e.name.replace(/\(.*?\)/g,'').trim())})});
     plan=obj;DB.set('plan',plan);
+    saveCurrentGoal();   // store plan + settings against the active goal
     // reset positional state for the new plan
     openDay=0;logDay=0;checks={};
     DB.set('openDay',0);DB.set('logDay',0);DB.set('checks',checks);
@@ -885,6 +984,12 @@ Rules: Number of day objects must match their available days (${g.days}). 5-7 ex
   }finally{btn.disabled=false;btn.textContent='Build my plan with AI';}
 }
 function setMode(m){$('#hMode').textContent='';$('#hKicker').textContent=m||'Your Plan'}
+function updateHeaderGoal(){
+  const act=activeGoals();
+  const g=currentGoal();
+  const extra=act.length>1?` <span style="color:var(--muted);font-weight:400">+${act.length-1}</span>`:'';
+  $('#hGoalStat').innerHTML='Goal <b>'+esc(g?(g.name||g.settings.goal||'—'):'—')+'</b>'+extra;
+}
 
 /* ============================================================
    WORKOUT VIEW
@@ -1257,7 +1362,11 @@ Be specific to the exercises named. Under 180 words, plain and direct, no fluff,
 const QUICK=['My shoulder feels sore today','I tweaked something at soccer','Swap an exercise I dislike','Am I progressing well?','Short on time today'];
 function coachContext(){
   const p=profile;
-  let ctx=`Athlete: ${p.display||'user'}. Goal: ${p.goal||'general fitness'}. Experience: ${p.exp||'n/a'}. Age ${p.age||'n/a'}, ${p.height||'?'}cm, ${p.weight||'?'}kg. Trains ${p.days||'?'} days/week. Equipment: ${(p.equip||[]).join(', ')||'n/a'}. Notes: ${p.notes||'none'}.`;
+  const act=activeGoals();
+  const goalLine=act.length>1
+    ? `Primary goal: ${p.goal||'general fitness'}. Also actively working toward: ${act.filter(g=>g.id!==primaryId).map(g=>g.name||g.settings.goal).join(', ')}.`
+    : `Goal: ${p.goal||'general fitness'}.`;
+  let ctx=`Athlete: ${p.display||'user'}. ${goalLine} Experience: ${p.exp||'n/a'}. Age ${p.age||'n/a'}, ${p.height||'?'}cm, ${p.weight||'?'}kg. Trains ${p.days||'?'} days/week. Equipment: ${(p.equip||[]).join(', ')||'n/a'}. Notes: ${p.notes||'none'}.`;
   if(plan){ctx+=`\nCurrent plan (${plan.mode}):\n`+plan.days.map(d=>`${d.t}: ${d.ex.map(e=>e.name).join(', ')}`).join('\n')}
   const recent=logs.slice(-10).map(l=>{
     const sets=lastSummary(l);
@@ -1605,8 +1714,8 @@ Return ONLY the JSON, no markdown fences, no commentary.`;
    BACKUP
    ============================================================ */
 function exportBackup(){
-  const data={v:4,user:profile.display,exported:new Date().toISOString(),
-    profile,plan,checks,logs,weights,openDay,logDay,chatHist,recipes,pinned,week};
+  const data={v:5,user:profile.display,exported:new Date().toISOString(),
+    profile,plan,checks,logs,weights,openDay,logDay,chatHist,recipes,pinned,week,goals,primaryId};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
   const d=new Date().toISOString().slice(0,10);
@@ -1625,9 +1734,12 @@ function importBackup(e){
       profile=d.profile||profile;plan=d.plan||plan;checks=d.checks||{};logs=d.logs||[];
       weights=d.weights||[];openDay=d.openDay||0;logDay=d.logDay||0;chatHist=d.chatHist||[];
       recipes=d.recipes||[];pinned=d.pinned||[];week=d.week||null;
+      goals=d.goals||null;primaryId=d.primaryId||null;
       DB.set('profile',profile);DB.set('plan',plan);DB.set('checks',checks);DB.set('logs',logs);
       DB.set('weights',weights);DB.set('openDay',openDay);DB.set('logDay',logDay);DB.set('chatHist',chatHist);
       DB.set('recipes',recipes);DB.set('pinned',pinned);DB.set('week',week);
+      if(goals){DB.set('goals',goals);DB.set('primaryId',primaryId)}else{DB.del('goals')}
+      loadUserData();  // rebuilds goals (with migration if needed) and syncs primary
       $('#whoName').textContent=profile.display||CURRENT;
       initApp(false);toast('Backup restored');
     }catch(err){toast('Couldn\'t read that file')}
@@ -1658,7 +1770,7 @@ function goTo(v){$$('nav button').forEach(x=>x.classList.toggle('on',x.dataset.v
 function initApp(isNew){
   // header
   if(profile.weight)$('#hWeight').textContent=profile.weight;
-  $('#hGoalStat').innerHTML='Goal <b>'+(profile.goal||'—')+'</b>';
+  updateHeaderGoal();
   setMode(plan?plan.mode:'Your Plan');
   // renders
   loadGoalsForm();renderWorkout();renderRoutine();renderLog();renderWeight();renderReport();renderFood();
