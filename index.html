@@ -144,6 +144,18 @@
   .feel-wrap select.set{color:var(--accent);border-color:var(--accent-dim)}
   .rt-foot{display:flex;gap:10px;padding:14px}
   .rt-foot .btn{margin:0}
+  .rest-row{display:flex;align-items:center;gap:8px;padding:0 14px 4px;flex-wrap:wrap}
+  .rest-lbl{font-family:'Barlow Condensed';font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .rest-btn{font-family:'Barlow Condensed';font-weight:600;font-size:14px;padding:6px 12px;border-radius:999px;border:1px solid var(--accent-dim);background:var(--panel-2);color:var(--accent);cursor:pointer}
+  .rest-btn:active{background:var(--accent-dim)}
+  .rest-timer{position:fixed;bottom:calc(96px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(30px);z-index:55;display:none;align-items:center;gap:12px;background:var(--accent);color:#06231a;border-radius:16px;padding:10px 14px;box-shadow:0 8px 30px rgba(0,0,0,.4);opacity:0;transition:.25s}
+  .rest-timer.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0)}
+  .rest-timer.done{background:var(--hot);color:#fff;animation:restpulse .5s ease 3}
+  @keyframes restpulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.06)}}
+  .rest-timer .rt-time{font-family:'Barlow Condensed';font-weight:700;font-size:26px;line-height:1;min-width:60px;text-align:center}
+  .rest-timer .rt-lbl{font-family:'Barlow Condensed';font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
+  .rest-timer .rt-x{background:rgba(0,0,0,.15);border:none;color:inherit;width:26px;height:26px;border-radius:50%;font-size:18px;cursor:pointer;line-height:1}
+  .rest-timer .rt-add{background:rgba(0,0,0,.15);border:none;color:inherit;font-family:'Barlow Condensed';font-weight:700;font-size:13px;padding:6px 10px;border-radius:8px;cursor:pointer}
 
   /* Weigh-in */
   .wi-add{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:8px}
@@ -331,6 +343,41 @@
   .supp-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:5px}
   .supp-meta b{color:var(--accent);font-family:'Barlow Condensed';font-weight:600;margin-right:3px}
   .supp-why{font-size:12px;color:var(--ink);line-height:1.45;margin-top:6px;opacity:.85}
+  .supp-brands{font-size:12px;color:var(--accent);line-height:1.45;margin-top:6px}
+
+  /* Today dashboard */
+  .today-card{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;margin-bottom:12px;cursor:pointer}
+  .today-card .tc-main{flex:1;min-width:0}
+  .today-card .tc-t{font-family:'Barlow Condensed';font-weight:600;font-size:20px;line-height:1}
+  .today-card .tc-s{font-size:12px;color:var(--muted);margin-top:4px}
+  .today-card .tc-go{color:var(--accent);font-family:'Barlow Condensed';font-weight:600;font-size:14px;flex:none}
+  .today-meal{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .today-meal:last-of-type{border-bottom:none}
+  .today-meal .tm-slot{font-family:'Barlow Condensed';font-weight:600;font-size:12px;color:var(--hot);text-transform:uppercase;letter-spacing:.04em;width:74px;flex:none}
+  .today-meal .tm-name{flex:1;min-width:0}
+  /* Habits */
+  .habit-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:6px}
+  .habit{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 8px;text-align:center}
+  .habit .hb-top{display:flex;flex-direction:column;align-items:center;gap:2px}
+  .habit .hb-icon{font-size:18px}
+  .habit .hb-label{font-family:'Barlow Condensed';font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .habit .hb-val{font-family:'Barlow Condensed';font-weight:700;font-size:24px;margin:5px 0}
+  .habit .hb-val span{font-size:11px;color:var(--muted);font-weight:600;margin-left:2px}
+  .habit .hb-ctrl{display:flex;gap:6px;justify-content:center}
+  .habit .hb-ctrl button{width:34px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--accent);font-size:18px;font-weight:700;cursor:pointer;line-height:1}
+  .habit .hb-ctrl button:active{background:var(--accent-dim)}
+  /* Nudges */
+  .nudge{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:11px 13px;margin-bottom:9px;font-size:13px;line-height:1.4}
+  .nudge.down{border-left-color:var(--hot)}
+  .nudge .nd-icon{flex:none}
+  /* Photos */
+  .photo-add{margin-bottom:10px}
+  .photo-add .btn{margin:0}
+  .photo-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .photo-item{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:3/4}
+  .photo-item img{width:100%;height:100%;object-fit:cover;display:block}
+  .photo-date{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;font-size:10px;font-family:'Barlow Condensed';font-weight:600;letter-spacing:.04em;padding:10px 6px 4px;text-align:center}
+  .photo-del{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);border:none;color:#fff;font-size:16px;line-height:1;cursor:pointer}
   #import-file{display:none}
 </style>
 </head>
@@ -387,8 +434,61 @@
 </header>
 
 <main>
+  <!-- TODAY -->
+  <section class="view active" id="v-today">
+    <div class="eyebrow" style="margin-top:4px">Today's session</div>
+    <div id="today-workout"></div>
+
+    <div class="eyebrow">Daily check-in</div>
+    <div class="habit-grid" id="habit-grid"></div>
+
+    <div class="eyebrow">Coach's nudges</div>
+    <div id="today-nudges"></div>
+
+    <div class="eyebrow">Today's meals</div>
+    <div id="today-meals"></div>
+
+    <div class="eyebrow">Progress insight</div>
+    <div class="ai-card" id="ai-card">
+      <div class="ai-head">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.5 3.4L16.6 18 12 14.8 7.4 18l1.6-5.6L4.5 9l5.6-.4z"/></svg>
+        <span>Coach's read</span>
+      </div>
+      <div id="ai-body" class="ai-body">Tap below and I'll look over everything you've logged — which lifts are climbing, which have stalled, and where to put your focus.</div>
+      <button class="btn" id="ai-run">Analyse my progress</button>
+    </div>
+
+    <div class="eyebrow">Progress photos</div>
+    <div id="photo-wrap">
+      <div class="photo-add">
+        <input type="file" id="photo-file" accept="image/*" style="display:none">
+        <button class="btn ghost" id="photo-btn">+ Add progress photo</button>
+      </div>
+      <div class="photo-grid" id="photo-grid"></div>
+    </div>
+
+    <div class="eyebrow">View progress by</div>
+    <div class="pill-row" id="rep-mode">
+      <button class="pill on" data-m="day">Workout day</button>
+      <button class="pill" data-m="ex">Exercise</button>
+    </div>
+    <div id="rep-body"></div>
+
+    <div class="eyebrow">Backup &amp; account</div>
+    <div class="card">
+      <div class="txt" style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">Your data is saved in this browser. Export a backup now and then so you never lose your history — then Import it on a new device.</div>
+      <div class="backup-row">
+        <button class="btn ghost" id="bk-export">Export backup</button>
+        <button class="btn" id="bk-import-btn">Import backup</button>
+      </div>
+      <input type="file" id="import-file" accept="application/json,.json">
+      <button class="btn ghost" id="logout-btn" style="margin-top:10px">Sign out</button>
+    </div>
+    <div class="note-line" style="margin-top:6px">General guidance, not medical advice. See a GP before a calorie deficit, new supplements, or training around an injury.</div>
+  </section>
+
   <!-- GOALS / PLAN -->
-  <section class="view active" id="v-goals">
+  <section class="view" id="v-goals">
     <div id="goal-switch-wrap" style="display:none">
       <div class="eyebrow" style="margin-top:4px">Your goals</div>
       <div class="goal-tabs" id="goal-tabs"></div>
@@ -498,39 +598,7 @@
       </div>
       <button class="btn" id="sm-add" style="margin-top:8px">Add supplement</button>
     </div>
-    <div class="note-line" style="margin-top:6px">General information only — not medical advice. Check with a pharmacist or GP before starting anything, especially if you take medication or have a health condition.</div>
-  </section>
-
-  <!-- REPORT -->
-  <section class="view" id="v-report">
-    <div class="eyebrow" style="margin-top:4px">Progress insight</div>
-    <div class="ai-card" id="ai-card">
-      <div class="ai-head">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.5 3.4L16.6 18 12 14.8 7.4 18l1.6-5.6L4.5 9l5.6-.4z"/></svg>
-        <span>Coach's read</span>
-      </div>
-      <div id="ai-body" class="ai-body">Tap below and I'll look over everything you've logged — which lifts are climbing, which have stalled, and where to put your focus.</div>
-      <button class="btn" id="ai-run">Analyse my progress</button>
-    </div>
-
-    <div class="eyebrow">View by</div>
-    <div class="pill-row" id="rep-mode">
-      <button class="pill on" data-m="day">Workout day</button>
-      <button class="pill" data-m="ex">Exercise</button>
-    </div>
-    <div id="rep-body"></div>
-
-    <div class="eyebrow">Backup &amp; account</div>
-    <div class="card">
-      <div class="txt" style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">Your data is saved in this browser. Export a backup file now and then so you never lose your history — then Import it on a new device.</div>
-      <div class="backup-row">
-        <button class="btn ghost" id="bk-export">Export backup</button>
-        <button class="btn" id="bk-import-btn">Import backup</button>
-      </div>
-      <input type="file" id="import-file" accept="application/json,.json">
-      <button class="btn ghost" id="logout-btn" style="margin-top:10px">Sign out</button>
-    </div>
-    <div class="note-line" style="margin-top:6px">General guidance, not medical advice. See a GP before a calorie deficit, new supplements, or training around an injury.</div>
+    <div class="note-line" style="margin-top:6px">General information only — not medical advice, and brand mentions are illustrative examples, not endorsements. Check with a pharmacist or GP before starting anything, especially if you take medication or have a health condition.</div>
   </section>
 
   <!-- FOOD -->
@@ -573,8 +641,8 @@
 </main>
 
 <nav>
-  <button data-v="goals" class="on">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>Plan</button>
+  <button data-v="today" class="on">
+    <svg viewBox="0 0 24 24"><path d="M3 10.5L12 4l9 6.5M5 9.5V20h14V9.5"/><path d="M9 20v-6h6v6"/></svg>Today</button>
   <button data-v="workout">
     <svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h2M4 15h2M18 9h2M18 15h2M6 12h12"/></svg>Workout</button>
   <button data-v="log">
@@ -583,10 +651,16 @@
     <svg viewBox="0 0 24 24"><path d="M10.5 20.5l10-10a5 5 0 00-7-7l-10 10a5 5 0 007 7z"/><path d="M8.5 8.5l7 7"/></svg>Supps</button>
   <button data-v="food">
     <svg viewBox="0 0 24 24"><path d="M4 4v6a3 3 0 003 3v8M7 4v6M10 4v6M17 4c-1.3 0-2.2 1.6-2.2 4.5S15.7 13 17 13v8"/></svg>Food</button>
-  <button data-v="report">
-    <svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3"/></svg>Report</button>
+  <button data-v="goals">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>Plan</button>
 </nav>
 <div class="toast" id="toast"></div>
+<div class="rest-timer" id="restTimer">
+  <button class="rt-x" id="restCancel" title="Cancel">×</button>
+  <div class="rt-time" id="restTime">1:30</div>
+  <div class="rt-lbl">Rest</div>
+  <button class="rt-add" id="restPlus">+15s</button>
+</div>
 
 <!-- ============ COACH CHAT OVERLAY ============ -->
 <div class="chat-overlay" id="chat">
@@ -625,7 +699,7 @@ const AI_READY = /^https?:\/\//.test(PROXY_URL) && !PROXY_URL.includes("PASTE_YO
    newer, force-reloads once with a fresh URL so iOS/Safari can't serve
    a stale home-screen copy.
    ============================================================ */
-const APP_VERSION = 19;   // <-- increment this each deploy (20, 21, ...)
+const APP_VERSION = 21;   // <-- increment this each deploy (22, 23, ...)
 (function checkForUpdate(){
   try{
     // only run on the live site, not file:// previews
@@ -680,6 +754,7 @@ const ACC={
 let profile,plan,checks,logs,weights,openDay,logDay,repMode,chatHist,recipes,pinned,week;
 let goals,primaryId;  // goals: [{id,name,settings:{...},plan,archived}], primaryId = active goal id
 let weeksByGoal,supps,suppPlan;  // weeksByGoal: {goalId:weekObj}; supps: user's own; suppPlan: AI plan for current goal
+let habits,photos;  // habits: {dateStr:{water,sleep,steps}}; photos: [{id,ts,data}]
 
 function loadUserData(){
   profile = DB.get('profile',{});
@@ -697,6 +772,8 @@ function loadUserData(){
   weeksByGoal = DB.get('weeksByGoal',null);
   supps   = DB.get('supps',[]);       // user's own supplements
   suppPlan= DB.get('suppPlan',null);  // AI supplement plan {goalId, items:[...], general:[...], built}
+  habits  = DB.get('habits',{});      // {dateStr:{water,sleep,steps}}
+  photos  = DB.get('photos',[]);      // progress photos (compressed)
   goals   = DB.get('goals',null);
   primaryId = DB.get('primaryId',null);
   // --- migration: turn an existing single goal into the goals list ---
@@ -765,6 +842,40 @@ const $=s=>document.querySelector(s);
 const $$=s=>document.querySelectorAll(s);
 const fmtDate=ts=>new Date(ts).toLocaleDateString('en-AU',{day:'numeric',month:'short'});
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600)}
+/* ---------- Rest timer ---------- */
+let restLeft=0,restInt=null;
+function fmtRest(s){const m=Math.floor(s/60),ss=s%60;return m+':'+String(ss).padStart(2,'0')}
+function paintRest(){const el=$('#restTime');if(el)el.textContent=fmtRest(Math.max(0,restLeft))}
+function startRest(sec){
+  const bar=$('#restTimer');bar.classList.remove('done');bar.classList.add('show');
+  restLeft=sec;paintRest();
+  clearInterval(restInt);
+  restInt=setInterval(()=>{
+    restLeft--;paintRest();
+    if(restLeft<=0){
+      clearInterval(restInt);restInt=null;
+      bar.classList.add('done');
+      try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}
+      beep();
+      setTimeout(()=>{bar.classList.remove('show','done')},4000);
+    }
+  },1000);
+}
+function stopRest(){clearInterval(restInt);restInt=null;$('#restTimer').classList.remove('show','done')}
+function beep(){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);o.frequency.value=880;o.type='sine';
+    g.gain.setValueAtTime(.001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.3,ctx.currentTime+.02);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.5);
+    o.start();o.stop(ctx.currentTime+.5);
+  }catch(e){}
+}
+document.addEventListener('DOMContentLoaded',()=>{});
+$('#restCancel').onclick=stopRest;
+$('#restPlus').onclick=()=>{restLeft+=15;if(!restInt){$('#restTimer').classList.remove('done');$('#restTimer').classList.add('show');startRest(restLeft)}else paintRest()};
+
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function mdToHtml(t){
   return t.split('\n').map(l=>{
@@ -778,7 +889,8 @@ function mdToHtml(t){
   }).filter(x=>x!=='').join('<br>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
 }
 const YT="https://www.youtube.com/results?search_query=";
-const ytLink=q=>YT+encodeURIComponent(q+" proper form tutorial");
+const CARDIO_RX=/(run|jog|treadmill|bike|cycl|row|sprint|interval|cardio|elliptical|walk|swim|skip|jump rope|stair)/i;
+const ytLink=q=>YT+encodeURIComponent(q+(CARDIO_RX.test(q)?" technique tips beginners":" proper form tutorial"));
 
 /* ============================================================
    AUTH UI
@@ -1016,7 +1128,9 @@ Return ONLY valid JSON (no markdown fences, no commentary) in exactly this shape
   ]
 }
 
-Rules: Number of day objects must match their available days (${g.days}). 5-7 exercises per day. Respect their equipment and any injuries (swap risky moves, add a protective note). Keep exercise names standard so form videos can be found. Mark a genuinely optional extra day with "opt": true.`;
+Rules: Number of day objects must match their available days (${g.days}). 5-7 items per day. Respect their equipment and any injuries (swap risky moves, add a protective note). Keep exercise names standard so form videos can be found. Mark a genuinely optional extra day with "opt": true.
+
+Conditioning/cardio: where it suits the goal (fat loss, general fitness, sport performance, or bodyweight/endurance focus), include cardio or conditioning as real programmed items — e.g. "Treadmill run" or "Bike intervals". For a cardio item, put the duration and intensity in the "sets" field (e.g. "25 min · easy Zone 2" or "8 × 1 min hard / 2 min easy") and a short coaching cue in "note". You can also make a whole day a conditioning/active-recovery day when the split calls for it. For pure strength/muscle-building goals, keep cardio minimal (a short finisher or one optional session) unless they asked for more.`;
 
   try{
     let txt=await callClaude([{role:'user',content:prompt}],2000);
@@ -1219,11 +1333,20 @@ function renderRoutine(){
           </select>
         </div>
       </div>`}).join('')}
+    <div class="rest-row">
+      <span class="rest-lbl">Rest timer</span>
+      <button class="rest-btn" data-rest-sec="60">60s</button>
+      <button class="rest-btn" data-rest-sec="90">90s</button>
+      <button class="rest-btn" data-rest-sec="120">2m</button>
+      <button class="rest-btn" data-rest-sec="180">3m</button>
+    </div>
     <div class="rt-foot">
       <button class="btn ghost" id="rt-clear">Clear</button>
       <button class="btn" id="rt-save">Save ${esc(day.t)} session</button>
     </div>
   </div>`;
+  // rest timer buttons
+  c.querySelectorAll('[data-rest-sec]').forEach(b=>b.onclick=()=>startRest(+b.dataset.restSec));
   // mark pre-selected feel dropdowns
   c.querySelectorAll('select[data-f="feel"]').forEach(s=>{if(s.value)s.classList.add('set')});
   // add-set buttons
@@ -1343,6 +1466,160 @@ function exerciseProgress(){
   }
   return out;
 }
+
+/* ============================================================
+   TODAY DASHBOARD
+   ============================================================ */
+function todayStr(){return new Date().toISOString().slice(0,10)}
+function jsDayToPlanIndex(){
+  // best-effort: map weekday to a plan day if names hint at it, else null
+  return null;
+}
+function renderToday(){
+  renderHabits();
+  renderNudges();
+  renderTodayWorkout();
+  renderTodayMeals();
+  renderPhotos();
+  renderReport();  // rep-body + rep-mode now live in Today
+}
+function renderTodayWorkout(){
+  const c=$('#today-workout');if(!c)return;
+  if(!plan||!plan.days||!plan.days.length){c.innerHTML='<div class="empty">No plan yet — set one up on the Plan tab.</div>';return}
+  // show the currently-selected log day as "today's session"
+  const di=(logDay<plan.days.length)?logDay:0;
+  const day=plan.days[di];
+  const done=day.ex.filter((_,ei)=>checks[di+'-'+ei]).length;
+  c.innerHTML=`<div class="today-card" id="today-go-workout">
+    <div class="tc-main"><div class="tc-t">${esc(day.t)}</div><div class="tc-s">${day.ex.length} exercises · ${done}/${day.ex.length} ticked</div></div>
+    <div class="tc-go">Open ›</div>
+  </div>`;
+  const el=$('#today-go-workout');if(el)el.onclick=()=>goTo('workout');
+}
+function renderTodayMeals(){
+  const c=$('#today-meals');if(!c)return;
+  if(!week||!week.days){c.innerHTML='<div class="empty">No meal plan yet — build one on the Food tab.</div>';return}
+  // weekday → 0=Mon index
+  const jsDay=new Date().getDay(); // 0 Sun..6 Sat
+  const idx=(jsDay+6)%7;           // 0 Mon..6 Sun
+  const day=week.days[idx]||week.days[0];
+  const slots=[['breakfast','Breakfast'],['lunch','Lunch'],['dinner','Dinner'],['snack','Snack']];
+  c.innerHTML=`<div class="card" style="padding:12px 14px">
+    ${slots.map(([k,label])=>{const m=day[k];return `<div class="today-meal"><span class="tm-slot">${label}</span><span class="tm-name">${m?esc(m.title||'—'):'—'}</span></div>`}).join('')}
+    <button class="btn ghost" id="today-go-food" style="margin-top:10px">Open meal plan</button>
+  </div>`;
+  const el=$('#today-go-food');if(el)el.onclick=()=>{goTo('food');renderFood()};
+}
+/* ---------- Habits ---------- */
+const HABITS=[
+  {k:'water',label:'Water',unit:'glasses',step:1,max:15,icon:'💧'},
+  {k:'sleep',label:'Sleep',unit:'hrs',step:0.5,max:12,icon:'😴'},
+  {k:'steps',label:'Steps',unit:'k',step:1,max:40,icon:'👟'}
+];
+function todayHabit(){const d=todayStr();return habits[d]||{}}
+function renderHabits(){
+  const c=$('#habit-grid');if(!c)return;
+  const h=todayHabit();
+  c.innerHTML=HABITS.map(x=>{
+    const v=h[x.k]||0;
+    return `<div class="habit">
+      <div class="hb-top"><span class="hb-icon">${x.icon}</span><span class="hb-label">${x.label}</span></div>
+      <div class="hb-val">${v%1===0?v:v.toFixed(1)}<span>${x.unit}</span></div>
+      <div class="hb-ctrl">
+        <button data-hd="${x.k}">−</button>
+        <button data-hi="${x.k}">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  c.querySelectorAll('[data-hi]').forEach(b=>b.onclick=()=>bumpHabit(b.dataset.hi,1));
+  c.querySelectorAll('[data-hd]').forEach(b=>b.onclick=()=>bumpHabit(b.dataset.hd,-1));
+}
+function bumpHabit(k,dir){
+  const spec=HABITS.find(x=>x.k===k);const d=todayStr();
+  habits[d]=habits[d]||{};
+  let v=(habits[d][k]||0)+dir*spec.step;
+  if(v<0)v=0;if(v>spec.max)v=spec.max;
+  habits[d][k]=v;DB.set('habits',habits);renderHabits();
+}
+/* ---------- Progression nudges ---------- */
+function renderNudges(){
+  const c=$('#today-nudges');if(!c)return;
+  const tips=computeNudges();
+  if(!tips.length){c.innerHTML='<div class="empty">Log a few sessions and I\'ll flag when to push harder or ease off.</div>';return}
+  c.innerHTML=tips.map(t=>`<div class="nudge ${t.kind}"><span class="nd-icon">${t.kind==='up'?'📈':t.kind==='down'?'🛑':'💡'}</span><span>${esc(t.text)}</span></div>`).join('');
+}
+function computeNudges(){
+  const tips=[];
+  // group logs by exercise, chronological
+  const byEx={};
+  logs.slice().sort((a,b)=>a.ts-b.ts).forEach(l=>{(byEx[l.ex]=byEx[l.ex]||[]).push(l)});
+  for(const ex in byEx){
+    const arr=byEx[ex];
+    const last3=arr.slice(-3);
+    if(last3.length>=3){
+      // three easy/solid in a row → progress
+      const feels=last3.map(l=>l.feel);
+      if(feels.every(f=>f==='easy'||f==='solid')){
+        tips.push({kind:'up',text:`${ex}: 3 solid sessions — add a little weight or a rep next time.`});
+      }
+      // three tough/failed/pain → back off
+      const hard=last3.filter(l=>['short','failed','pain'].includes(l.feel)).length;
+      if(hard>=2){
+        tips.push({kind:'down',text:`${ex}: a few hard/failed sessions lately — hold weight or take a lighter week.`});
+      }
+      // pain flag
+      if(last3.some(l=>l.feel==='pain')){
+        tips.push({kind:'down',text:`${ex}: you flagged pain recently — consider swapping it or resting that area.`});
+      }
+    }
+  }
+  // dedupe & cap
+  const seen={};const out=[];
+  for(const t of tips){const key=t.text;if(!seen[key]){seen[key]=1;out.push(t)}if(out.length>=5)break}
+  return out;
+}
+/* ---------- Progress photos ---------- */
+function renderPhotos(){
+  const c=$('#photo-grid');if(!c)return;
+  if(!photos.length){c.innerHTML='<div class="empty" style="grid-column:1/-1">No photos yet. Add one to track visual change over time.</div>';return}
+  c.innerHTML=photos.slice().reverse().map(p=>`<div class="photo-item">
+    <img src="${p.data}" alt="progress">
+    <div class="photo-date">${fmtDate(p.ts)}</div>
+    <button class="photo-del" data-pdel="${p.id}">×</button>
+  </div>`).join('');
+  c.querySelectorAll('[data-pdel]').forEach(b=>b.onclick=()=>{
+    if(!confirm('Delete this photo?'))return;
+    photos=photos.filter(p=>p.id!==b.dataset.pdel);DB.set('photos',photos);renderPhotos();
+  });
+}
+function addPhoto(file){
+  if(!file)return;
+  if(photos.length>=12){toast('Photo limit reached (12) — delete an old one first');return}
+  const img=new Image();const rd=new FileReader();
+  rd.onload=()=>{img.src=rd.result};
+  img.onload=()=>{
+    // downscale to max 600px wide, JPEG ~0.7 to keep storage small
+    const max=600;let w=img.width,hh=img.height;
+    if(w>max){hh=Math.round(hh*max/w);w=max}
+    const cv=document.createElement('canvas');cv.width=w;cv.height=hh;
+    cv.getContext('2d').drawImage(img,0,0,w,hh);
+    let data;
+    try{data=cv.toDataURL('image/jpeg',0.7)}catch(e){toast('Could not process image');return}
+    try{
+      photos.push({id:'p'+Date.now(),ts:Date.now(),data});
+      DB.set('photos',photos);
+      // verify it actually saved (storage can be full)
+      if(!DB.get('photos',null)){throw new Error('storage')}
+      renderPhotos();toast('Photo added');
+    }catch(e){
+      photos.pop();
+      toast('Storage full — delete old photos or export a backup');
+    }
+  };
+  rd.onerror=()=>toast('Could not read that image');
+  rd.readAsDataURL(file);
+}
+
 function renderReport(){
   const body=$('#rep-body');
   $('#rep-mode').querySelectorAll('.pill').forEach(b=>{
@@ -1815,6 +2092,7 @@ function suppItemCard(s,kind){
       ${s.when?`<span><b>When</b> ${esc(s.when)}</span>`:''}
     </div>
     ${s.why?`<div class="supp-why">${esc(s.why)}</div>`:''}
+    ${s.brands?`<div class="supp-brands">🛒 ${esc(s.brands)}</div>`:''}
   </div>`;
 }
 function renderSupps(){
@@ -1840,11 +2118,12 @@ Give a practical supplement plan. Two groups:
 1) "items" — supplements that specifically support their goal (${profile.goal}). What, when, how much.
 2) "general" — a few well-evidenced supplements for general health most people benefit from.
 Only suggest widely-available, well-researched supplements. Conservative, typical doses. No prescription drugs.
+For each supplement, also give "brands": 1-2 examples that are either third-party tested / reputable, or notably good value, with a couple of words on which is which. These are illustrative examples to guide shopping, NOT endorsements.
 
 Return ONLY valid JSON (no markdown, no commentary):
-{"items":[{"name":"Creatine monohydrate","dose":"5g","when":"daily, any time","why":"one short line on the benefit for their goal"}],
- "general":[{"name":"Vitamin D3","dose":"1000-2000 IU","when":"morning with food","why":"one short line"}]}
-3-5 items in each group. Keep 'why' to one short line.`;
+{"items":[{"name":"Creatine monohydrate","dose":"5g","when":"daily, any time","why":"one short line on the benefit for their goal","brands":"e.g. Optimum Nutrition (trusted), Bulk (good value)"}],
+ "general":[{"name":"Vitamin D3","dose":"1000-2000 IU","when":"morning with food","why":"one short line","brands":"e.g. NOW Foods (third-party tested)"}]}
+3-5 items in each group. Keep 'why' and 'brands' to one short line each.`;
   try{
     const obj=extractJSON(await callClaude([{role:'user',content:prompt}],1500));
     suppPlan={goalId:primaryId,items:obj.items||[],general:obj.general||[],built:Date.now()};
@@ -1863,9 +2142,9 @@ async function askSupp(){
   ans.innerHTML='<div class="plan-status"><span class="spin"></span>Looking into it…</div>';
   const prompt=`You are a cautious sports-nutrition advisor. ${foodGoalLine()}
 The person asks: "${q}"
-Suggest 1-3 suitable, widely-available supplements (no prescription drugs). For each: name, typical dose, when to take, and a one-line note on evidence/benefit. Add one short practical lifestyle tip if relevant. Be honest if evidence is weak.
+Suggest 1-3 suitable, widely-available supplements (no prescription drugs). For each: name, typical dose, when to take, a one-line note on evidence/benefit, and "brands" (1-2 illustrative reputable or good-value examples, not endorsements). Add one short practical lifestyle tip if relevant. Be honest if evidence is weak.
 
-Return ONLY valid JSON: {"suggestions":[{"name":"","dose":"","when":"","why":""}],"tip":"one short line or empty"}`;
+Return ONLY valid JSON: {"suggestions":[{"name":"","dose":"","when":"","why":"","brands":"e.g. Brand (trusted)"}],"tip":"one short line or empty"}`;
   try{
     const obj=extractJSON(await callClaude([{role:'user',content:prompt}],1200));
     const cards=(obj.suggestions||[]).map(s=>suppItemCard(s,'general')).join('');
@@ -1899,8 +2178,8 @@ $('#sm-add').onclick=()=>{
    BACKUP
    ============================================================ */
 function exportBackup(){
-  const data={v:6,user:profile.display,exported:new Date().toISOString(),
-    profile,plan,checks,logs,weights,openDay,logDay,chatHist,recipes,pinned,week,goals,primaryId,weeksByGoal,supps,suppPlan};
+  const data={v:7,user:profile.display,exported:new Date().toISOString(),
+    profile,plan,checks,logs,weights,openDay,logDay,chatHist,recipes,pinned,week,goals,primaryId,weeksByGoal,supps,suppPlan,habits,photos};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
   const d=new Date().toISOString().slice(0,10);
@@ -1921,6 +2200,8 @@ function importBackup(e){
       recipes=d.recipes||[];pinned=d.pinned||[];week=d.week||null;
       goals=d.goals||null;primaryId=d.primaryId||null;
       weeksByGoal=d.weeksByGoal||null;supps=d.supps||[];suppPlan=d.suppPlan||null;
+      habits=d.habits||{};photos=d.photos||[];
+      DB.set('habits',habits);DB.set('photos',photos);
       DB.set('profile',profile);DB.set('plan',plan);DB.set('checks',checks);DB.set('logs',logs);
       DB.set('weights',weights);DB.set('openDay',openDay);DB.set('logDay',logDay);DB.set('chatHist',chatHist);
       DB.set('recipes',recipes);DB.set('pinned',pinned);DB.set('week',week);
@@ -1937,6 +2218,8 @@ function importBackup(e){
 $('#bk-export').onclick=exportBackup;
 $('#bk-import-btn').onclick=()=>$('#import-file').click();
 $('#import-file').onchange=importBackup;
+$('#photo-btn').onclick=()=>$('#photo-file').click();
+$('#photo-file').onchange=e=>{addPhoto(e.target.files[0]);e.target.value=''};
 $('#logout-btn').onclick=logout;
 $('#whoBtn').onclick=()=>{if(confirm('Sign out of '+(profile.display||'this account')+'? Your data stays saved on this device.'))logout()};
 
@@ -1947,7 +2230,7 @@ $$('nav button').forEach(b=>b.onclick=()=>{
   $$('nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
   $$('.view').forEach(v=>v.classList.remove('active'));
   $('#v-'+b.dataset.v).classList.add('active');
-  if(b.dataset.v==='report')renderReport();
+  if(b.dataset.v==='today')renderToday();
   if(b.dataset.v==='food'){renderFood();maybeAutoRebuildWeek();}
   if(b.dataset.v==='supps')renderSupps();
   if(b.dataset.v==='goals')loadGoalsForm();
@@ -1963,9 +2246,9 @@ function initApp(isNew){
   updateHeaderGoal();
   setMode(plan?plan.mode:'Your Plan');
   // renders
-  loadGoalsForm();renderWorkout();renderRoutine();renderLog();renderWeight();renderReport();renderFood();renderSupps();
+  loadGoalsForm();renderWorkout();renderRoutine();renderLog();renderWeight();renderReport();renderFood();renderSupps();renderToday();
   // land on the right tab
-  if(!plan){goTo('goals')}else{goTo('workout')}
+  if(!plan){goTo('goals')}else{goTo('today')}
   window.scrollTo(0,0);
 }
 
