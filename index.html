@@ -44,6 +44,7 @@
   h1 span{color:var(--muted)}
   .stat-row{display:flex;gap:18px;margin-top:10px;font-size:12px;color:var(--muted);flex-wrap:wrap}
   .stat-row b{color:var(--ink);font-family:'Barlow Condensed';font-size:16px;font-weight:600}
+  .ver-tag{margin-left:auto;color:var(--muted);opacity:.6;font-size:11px;font-family:'Barlow Condensed';font-weight:600;letter-spacing:.05em;align-self:center}
   .who{font-family:'Barlow Condensed';font-weight:600;font-size:13px;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;flex:none;display:flex;align-items:center;gap:6px;max-width:120px}
   .who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .who svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
@@ -368,6 +369,7 @@
       <div class="stat-row">
         <div>Latest <b id="hWeight">—</b> kg</div>
         <div id="hGoalStat">Goal <b>—</b></div>
+        <div class="ver-tag" id="hVer">v—</div>
       </div>
     </div>
     <button class="who" id="whoBtn">
@@ -582,7 +584,7 @@ const AI_READY = /^https?:\/\//.test(PROXY_URL) && !PROXY_URL.includes("PASTE_YO
    newer, force-reloads once with a fresh URL so iOS/Safari can't serve
    a stale home-screen copy.
    ============================================================ */
-const APP_VERSION = 17;   // <-- increment this each deploy (18, 19, ...)
+const APP_VERSION = 18;   // <-- increment this each deploy (19, 20, ...)
 (function checkForUpdate(){
   try{
     // only run on the live site, not file:// previews
@@ -1770,6 +1772,7 @@ function goTo(v){$$('nav button').forEach(x=>x.classList.toggle('on',x.dataset.v
 function initApp(isNew){
   // header
   if(profile.weight)$('#hWeight').textContent=profile.weight;
+  $('#hVer').textContent='v'+APP_VERSION;
   updateHeaderGoal();
   setMode(plan?plan.mode:'Your Plan');
   // renders
