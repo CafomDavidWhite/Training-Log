@@ -324,6 +324,13 @@
 
   .backup-row{display:flex;gap:10px;margin-top:4px}
   .backup-row .btn{margin:0}
+  /* Supplements */
+  .supp-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:9px}
+  .supp-top{display:flex;align-items:center;gap:8px}
+  .supp-name{font-family:'Barlow Condensed';font-size:17px;font-weight:600;flex:1;line-height:1.1}
+  .supp-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:5px}
+  .supp-meta b{color:var(--accent);font-family:'Barlow Condensed';font-weight:600;margin-right:3px}
+  .supp-why{font-size:12px;color:var(--ink);line-height:1.45;margin-top:6px;opacity:.85}
   #import-file{display:none}
 </style>
 </head>
@@ -445,19 +452,53 @@
     <div id="log-routine"></div>
     <div class="eyebrow">History</div>
     <div id="log-list"></div>
-  </section>
-
-  <!-- WEIGH IN -->
-  <section class="view" id="v-weight">
-    <div class="eyebrow" style="margin-top:4px">Add weigh-in</div>
+    <div class="eyebrow">Weigh-in</div>
     <div class="wi-add">
       <input id="wi-val" inputmode="decimal" placeholder="Weight in kg (e.g. 82.4)">
       <button class="btn" style="margin:0;width:auto;padding:13px 20px" id="wi-save">Add</button>
     </div>
-    <div class="note-line">Weigh the same day &amp; time each week — morning, after the toilet, is most consistent.</div>
+    <div class="note-line">Weigh the same day &amp; time each week — mornings are most consistent.</div>
     <svg class="spark" id="spark" viewBox="0 0 320 64" preserveAspectRatio="none"></svg>
-    <div class="eyebrow">Log</div>
     <div id="wi-list"></div>
+  </section>
+
+  <!-- SUPPLEMENTS -->
+  <section class="view" id="v-supps">
+    <div class="coach-launch" id="supp-build" style="margin-top:4px">
+      <div class="ci"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5l10-10a5 5 0 00-7-7l-10 10a5 5 0 007 7z"/><path d="M8.5 8.5l7 7"/></svg></div>
+      <div class="ct"><b id="supp-build-title">Build my supplement plan</b><span>What to take, when &amp; how much — tuned to your goal.</span></div>
+      <div class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div>
+    </div>
+    <div id="supp-status" class="plan-status" style="display:none"></div>
+
+    <div id="supp-plan-wrap" style="display:none">
+      <div class="eyebrow">For your goal</div>
+      <div id="supp-goal-list"></div>
+      <div class="eyebrow">General health</div>
+      <div id="supp-general-list"></div>
+    </div>
+
+    <!-- Ask about a supplement need -->
+    <div class="card" style="margin-top:6px">
+      <label class="fld">Need something specific?</label>
+      <textarea id="supp-q" placeholder="e.g. I keep waking during the night — something to help me sleep"></textarea>
+      <button class="btn" id="supp-ask">Ask the coach</button>
+      <div id="supp-answer" style="display:none;margin-top:12px"></div>
+    </div>
+
+    <!-- Your own supplements -->
+    <div class="eyebrow">My supplements</div>
+    <div id="supp-mine"></div>
+    <div class="card">
+      <label class="fld">Add one you already take</label>
+      <input id="sm-name" placeholder="Name (e.g. Creatine)">
+      <div class="goal-grid" style="margin-top:8px">
+        <input id="sm-dose" placeholder="Dose (e.g. 5g)">
+        <input id="sm-when" placeholder="When (e.g. morning)">
+      </div>
+      <button class="btn" id="sm-add" style="margin-top:8px">Add supplement</button>
+    </div>
+    <div class="note-line" style="margin-top:6px">General information only — not medical advice. Check with a pharmacist or GP before starting anything, especially if you take medication or have a health condition.</div>
   </section>
 
   <!-- REPORT -->
@@ -538,8 +579,8 @@
     <svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h2M4 15h2M18 9h2M18 15h2M6 12h12"/></svg>Workout</button>
   <button data-v="log">
     <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Log</button>
-  <button data-v="weight">
-    <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18 9 9 0 000-18z"/><path d="M12 8v4l3 2"/></svg>Weight</button>
+  <button data-v="supps">
+    <svg viewBox="0 0 24 24"><path d="M10.5 20.5l10-10a5 5 0 00-7-7l-10 10a5 5 0 007 7z"/><path d="M8.5 8.5l7 7"/></svg>Supps</button>
   <button data-v="food">
     <svg viewBox="0 0 24 24"><path d="M4 4v6a3 3 0 003 3v8M7 4v6M10 4v6M17 4c-1.3 0-2.2 1.6-2.2 4.5S15.7 13 17 13v8"/></svg>Food</button>
   <button data-v="report">
@@ -584,7 +625,7 @@ const AI_READY = /^https?:\/\//.test(PROXY_URL) && !PROXY_URL.includes("PASTE_YO
    newer, force-reloads once with a fresh URL so iOS/Safari can't serve
    a stale home-screen copy.
    ============================================================ */
-const APP_VERSION = 18;   // <-- increment this each deploy (19, 20, ...)
+const APP_VERSION = 19;   // <-- increment this each deploy (20, 21, ...)
 (function checkForUpdate(){
   try{
     // only run on the live site, not file:// previews
@@ -638,6 +679,7 @@ const ACC={
 /* ---------- APP DATA (loaded per user) ---------- */
 let profile,plan,checks,logs,weights,openDay,logDay,repMode,chatHist,recipes,pinned,week;
 let goals,primaryId;  // goals: [{id,name,settings:{...},plan,archived}], primaryId = active goal id
+let weeksByGoal,supps,suppPlan;  // weeksByGoal: {goalId:weekObj}; supps: user's own; suppPlan: AI plan for current goal
 
 function loadUserData(){
   profile = DB.get('profile',{});
@@ -651,7 +693,10 @@ function loadUserData(){
   chatHist= DB.get('chatHist',[]);
   recipes = DB.get('recipes',[]);     // legacy one-off recipes (kept for compat)
   pinned  = DB.get('pinned',[]);      // favourites
-  week    = DB.get('week',null);      // 7-day meal plan
+  week    = DB.get('week',null);      // legacy single 7-day plan (migrated below)
+  weeksByGoal = DB.get('weeksByGoal',null);
+  supps   = DB.get('supps',[]);       // user's own supplements
+  suppPlan= DB.get('suppPlan',null);  // AI supplement plan {goalId, items:[...], general:[...], built}
   goals   = DB.get('goals',null);
   primaryId = DB.get('primaryId',null);
   // --- migration: turn an existing single goal into the goals list ---
@@ -669,6 +714,25 @@ function loadUserData(){
   }
   // ensure a valid primary among active goals
   syncPrimary();
+  // --- init/migrate per-goal meal plans ---
+  if(!weeksByGoal){
+    weeksByGoal={};
+    if(week&&primaryId){weeksByGoal[primaryId]=week}  // migrate old single week to current goal
+    DB.set('weeksByGoal',weeksByGoal);
+  }
+  pointWeekAtGoal();
+}
+/* ISO week key like "2026-W27" so we can tell if a plan is from a past week */
+function weekKey(ts){
+  const d=new Date(ts||Date.now());
+  const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);
+  const ys=new Date(Date.UTC(t.getUTCFullYear(),0,1));
+  const wk=Math.ceil((((t-ys)/86400000)+1)/7);
+  return t.getUTCFullYear()+'-W'+wk;
+}
+function pointWeekAtGoal(){
+  week = (primaryId && weeksByGoal[primaryId]) ? weeksByGoal[primaryId] : null;
 }
 function activeGoals(){return goals.filter(g=>!g.archived)}
 function currentGoal(){return goals.find(g=>g.id===primaryId)||activeGoals()[0]||null}
@@ -849,9 +913,11 @@ function switchGoal(id){
   // save what's on screen into the current goal first
   Object.assign(profile,collectGoals());saveCurrentGoal();
   primaryId=id;DB.set('primaryId',primaryId);
-  syncPrimary();
+  syncPrimary();pointWeekAtGoal();
   loadGoalsForm();renderWorkout();renderRoutine();renderLog();
   setMode(plan?plan.mode:'Your Plan');updateHeaderGoal();
+  renderFood();renderSupps();
+  maybeAutoRebuildWeek();  // rebuild meal plan only if missing or from a past week
   toast('Switched to '+(currentGoal().name||'goal'));
 }
 function newGoal(){
@@ -989,8 +1055,18 @@ function setMode(m){$('#hMode').textContent='';$('#hKicker').textContent=m||'You
 function updateHeaderGoal(){
   const act=activeGoals();
   const g=currentGoal();
-  const extra=act.length>1?` <span style="color:var(--muted);font-weight:400">+${act.length-1}</span>`:'';
-  $('#hGoalStat').innerHTML='Goal <b>'+esc(g?(g.name||g.settings.goal||'—'):'—')+'</b>'+extra;
+  const el=$('#hGoalStat');
+  const multi=act.length>1;
+  const extra=multi?` <span style="color:var(--accent);font-weight:600">⇄ +${act.length-1}</span>`:'';
+  el.innerHTML='Goal <b>'+esc(g?(g.name||g.settings.goal||'—'):'—')+'</b>'+extra;
+  el.style.cursor=multi?'pointer':'default';
+  el.onclick=multi?cycleGoal:null;
+}
+function cycleGoal(){
+  const act=activeGoals();if(act.length<2)return;
+  const i=act.findIndex(g=>g.id===primaryId);
+  const next=act[(i+1)%act.length];
+  switchGoal(next.id);
 }
 
 /* ============================================================
@@ -1632,8 +1708,9 @@ Keep it very compact. Macros per serving, integers.`;
       while(allDays.length<7)allDays.push(last);
     }
     if(!allDays.length)throw new Error('Nothing came back — please try again.');
-    week={days:allDays.slice(0,7),built:Date.now(),basis:aroundIngredients||''};
-    DB.set('week',week);
+    week={days:allDays.slice(0,7),built:Date.now(),wk:weekKey(),goalId:primaryId,basis:aroundIngredients||''};
+    if(primaryId){weeksByGoal[primaryId]=week;DB.set('weeksByGoal',weeksByGoal)}
+    DB.set('week',week);  // keep legacy key in sync
     weekViewDay=0;openMeal=null;
     st.style.display='none';renderFood();
     if(aroundIngredients)$('#food-have').value='';
@@ -1645,6 +1722,19 @@ Keep it very compact. Macros per serving, integers.`;
   }
 }
 $('#food-make').onclick=()=>buildWeek(null);
+/* auto-rebuild only when the current goal has no plan, or its plan is from a past week */
+let autoRebuildBusy=false;
+function maybeAutoRebuildWeek(){
+  if(autoRebuildBusy)return;
+  if(!currentGoal()||!profile.goal)return;          // need a goal set up first
+  if(!AI_READY)return;
+  const w=weeksByGoal[primaryId];
+  const stale=!w || (w.wk && w.wk!==weekKey());
+  if(stale){
+    autoRebuildBusy=true;
+    buildWeek(null).finally(()=>{autoRebuildBusy=false});
+  }
+}
 $('#food-from-have').onclick=()=>{
   const have=$('#food-have').value.trim();
   if(!have){toast('List a few ingredients first');return}
@@ -1713,11 +1803,104 @@ Return ONLY the JSON, no markdown fences, no commentary.`;
 }
 
 /* ============================================================
+   SUPPLEMENTS
+   ============================================================ */
+function suppItemCard(s,kind){
+  // kind: 'goal' | 'general' | 'mine'
+  const del=kind==='mine'?`<button class="del" data-sdel="${s.id}">×</button>`:'';
+  return `<div class="supp-card">
+    <div class="supp-top"><div class="supp-name">${esc(s.name||'Supplement')}</div>${del}</div>
+    <div class="supp-meta">
+      ${s.dose?`<span><b>Dose</b> ${esc(s.dose)}</span>`:''}
+      ${s.when?`<span><b>When</b> ${esc(s.when)}</span>`:''}
+    </div>
+    ${s.why?`<div class="supp-why">${esc(s.why)}</div>`:''}
+  </div>`;
+}
+function renderSupps(){
+  $('#supp-build-title').textContent = suppPlan ? 'Rebuild supplement plan' : 'Build my supplement plan';
+  const wrap=$('#supp-plan-wrap');
+  if(suppPlan&&(suppPlan.items||suppPlan.general)){
+    wrap.style.display='block';
+    $('#supp-goal-list').innerHTML=(suppPlan.items||[]).length?suppPlan.items.map(s=>suppItemCard(s,'goal')).join(''):'<div class="empty">No goal-specific suggestions.</div>';
+    $('#supp-general-list').innerHTML=(suppPlan.general||[]).length?suppPlan.general.map(s=>suppItemCard(s,'general')).join(''):'<div class="empty">No general suggestions.</div>';
+  }else{
+    wrap.style.display='none';
+  }
+  const mine=$('#supp-mine');
+  mine.innerHTML=supps.length?supps.map(s=>suppItemCard(s,'mine')).join(''):'<div class="empty">Nothing added yet. Add supplements you already take below.</div>';
+  mine.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=()=>{supps=supps.filter(x=>x.id!==b.dataset.sdel);DB.set('supps',supps);renderSupps();toast('Removed')});
+}
+async function buildSuppPlan(){
+  if(!profile.goal){toast('Set a goal on the Plan tab first');return}
+  const st=$('#supp-status');st.style.display='block';st.className='plan-status';
+  st.innerHTML='<span class="spin"></span>Putting together your supplement plan…';
+  const prompt=`You are a knowledgeable, cautious sports-nutrition advisor. ${foodGoalLine()}
+Give a practical supplement plan. Two groups:
+1) "items" — supplements that specifically support their goal (${profile.goal}). What, when, how much.
+2) "general" — a few well-evidenced supplements for general health most people benefit from.
+Only suggest widely-available, well-researched supplements. Conservative, typical doses. No prescription drugs.
+
+Return ONLY valid JSON (no markdown, no commentary):
+{"items":[{"name":"Creatine monohydrate","dose":"5g","when":"daily, any time","why":"one short line on the benefit for their goal"}],
+ "general":[{"name":"Vitamin D3","dose":"1000-2000 IU","when":"morning with food","why":"one short line"}]}
+3-5 items in each group. Keep 'why' to one short line.`;
+  try{
+    const obj=extractJSON(await callClaude([{role:'user',content:prompt}],1500));
+    suppPlan={goalId:primaryId,items:obj.items||[],general:obj.general||[],built:Date.now()};
+    DB.set('suppPlan',suppPlan);
+    st.style.display='none';renderSupps();toast('Supplement plan ready!');
+    $('#supp-plan-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(err){
+    st.className='plan-status';
+    st.innerHTML='<b style="color:var(--hot)">Failed.</b><br><span style="font-size:12px">'+esc(err&&err.message?err.message:String(err))+'</span>';
+  }
+}
+async function askSupp(){
+  const q=$('#supp-q').value.trim();
+  if(!q){toast('Describe what you need');return}
+  const ans=$('#supp-answer');ans.style.display='block';
+  ans.innerHTML='<div class="plan-status"><span class="spin"></span>Looking into it…</div>';
+  const prompt=`You are a cautious sports-nutrition advisor. ${foodGoalLine()}
+The person asks: "${q}"
+Suggest 1-3 suitable, widely-available supplements (no prescription drugs). For each: name, typical dose, when to take, and a one-line note on evidence/benefit. Add one short practical lifestyle tip if relevant. Be honest if evidence is weak.
+
+Return ONLY valid JSON: {"suggestions":[{"name":"","dose":"","when":"","why":""}],"tip":"one short line or empty"}`;
+  try{
+    const obj=extractJSON(await callClaude([{role:'user',content:prompt}],1200));
+    const cards=(obj.suggestions||[]).map(s=>suppItemCard(s,'general')).join('');
+    ans.innerHTML=`<div class="ai-card" style="margin:0">
+      <div class="ai-head"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.6L19.5 9l-4.5 3.4L16.6 18 12 14.8 7.4 18l1.6-5.6L4.5 9l5.6-.4z"/></svg><span>Suggestions</span></div>
+      ${cards||'<div class="ans-prose">No clear suggestion — worth asking a pharmacist.</div>'}
+      ${obj.tip?`<div class="meta-line" style="margin-top:8px">💡 ${esc(obj.tip)}</div>`:''}
+      <button class="btn ghost" id="supp-save-sugg" style="margin-top:10px">Add these to my supplements</button>
+    </div>`;
+    const saveBtn=$('#supp-save-sugg');
+    if(saveBtn)saveBtn.onclick=()=>{
+      (obj.suggestions||[]).forEach(s=>supps.push({id:'s'+Date.now()+Math.random().toString(36).slice(2,6),name:s.name,dose:s.dose,when:s.when,why:s.why}));
+      DB.set('supps',supps);renderSupps();toast('Added to My supplements');
+    };
+  }catch(err){
+    ans.innerHTML='<div class="plan-status"><b style="color:var(--hot)">Failed.</b><br><span style="font-size:12px">'+esc(err&&err.message?err.message:String(err))+'</span></div>';
+  }
+}
+$('#supp-build').onclick=buildSuppPlan;
+$('#supp-ask').onclick=askSupp;
+$('#sm-add').onclick=()=>{
+  const name=$('#sm-name').value.trim();
+  if(!name){toast('Enter a name');return}
+  supps.push({id:'s'+Date.now()+Math.random().toString(36).slice(2,6),name,dose:$('#sm-dose').value.trim(),when:$('#sm-when').value.trim()});
+  DB.set('supps',supps);
+  $('#sm-name').value='';$('#sm-dose').value='';$('#sm-when').value='';
+  renderSupps();toast('Added');
+};
+
+/* ============================================================
    BACKUP
    ============================================================ */
 function exportBackup(){
-  const data={v:5,user:profile.display,exported:new Date().toISOString(),
-    profile,plan,checks,logs,weights,openDay,logDay,chatHist,recipes,pinned,week,goals,primaryId};
+  const data={v:6,user:profile.display,exported:new Date().toISOString(),
+    profile,plan,checks,logs,weights,openDay,logDay,chatHist,recipes,pinned,week,goals,primaryId,weeksByGoal,supps,suppPlan};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
   const d=new Date().toISOString().slice(0,10);
@@ -1737,9 +1920,12 @@ function importBackup(e){
       weights=d.weights||[];openDay=d.openDay||0;logDay=d.logDay||0;chatHist=d.chatHist||[];
       recipes=d.recipes||[];pinned=d.pinned||[];week=d.week||null;
       goals=d.goals||null;primaryId=d.primaryId||null;
+      weeksByGoal=d.weeksByGoal||null;supps=d.supps||[];suppPlan=d.suppPlan||null;
       DB.set('profile',profile);DB.set('plan',plan);DB.set('checks',checks);DB.set('logs',logs);
       DB.set('weights',weights);DB.set('openDay',openDay);DB.set('logDay',logDay);DB.set('chatHist',chatHist);
       DB.set('recipes',recipes);DB.set('pinned',pinned);DB.set('week',week);
+      DB.set('supps',supps);DB.set('suppPlan',suppPlan);
+      if(weeksByGoal)DB.set('weeksByGoal',weeksByGoal);else DB.del('weeksByGoal');
       if(goals){DB.set('goals',goals);DB.set('primaryId',primaryId)}else{DB.del('goals')}
       loadUserData();  // rebuilds goals (with migration if needed) and syncs primary
       $('#whoName').textContent=profile.display||CURRENT;
@@ -1762,7 +1948,8 @@ $$('nav button').forEach(b=>b.onclick=()=>{
   $$('.view').forEach(v=>v.classList.remove('active'));
   $('#v-'+b.dataset.v).classList.add('active');
   if(b.dataset.v==='report')renderReport();
-  if(b.dataset.v==='food')renderFood();
+  if(b.dataset.v==='food'){renderFood();maybeAutoRebuildWeek();}
+  if(b.dataset.v==='supps')renderSupps();
   if(b.dataset.v==='goals')loadGoalsForm();
   window.scrollTo({top:0,behavior:'smooth'});
 });
@@ -1776,7 +1963,7 @@ function initApp(isNew){
   updateHeaderGoal();
   setMode(plan?plan.mode:'Your Plan');
   // renders
-  loadGoalsForm();renderWorkout();renderRoutine();renderLog();renderWeight();renderReport();renderFood();
+  loadGoalsForm();renderWorkout();renderRoutine();renderLog();renderWeight();renderReport();renderFood();renderSupps();
   // land on the right tab
   if(!plan){goTo('goals')}else{goTo('workout')}
   window.scrollTo(0,0);
