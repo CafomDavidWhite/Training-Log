@@ -88,14 +88,32 @@
   .reset-day{display:block;width:100%;text-align:center;padding:11px;background:transparent;border:none;border-top:1px solid var(--line);color:var(--muted);font-family:'Barlow Condensed';letter-spacing:.1em;text-transform:uppercase;font-size:12px;font-weight:600;cursor:pointer}
   .reset-day:active{color:var(--hot)}
   .cust-tag{font-family:'Barlow Condensed';font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:var(--accent-dim);border-radius:4px;padding:1px 5px;vertical-align:1px;margin-left:5px}
-  .ex-del{flex:none;background:none;border:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:0 2px}
-  .ex-del:active{color:var(--hot)}
-  .add-ex{border-top:1px solid var(--line)}
-  .add-ex-toggle{padding:11px 16px;color:var(--accent);font-family:'Barlow Condensed';font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12px;cursor:pointer}
+  .add-ex{border:1px dashed var(--line);border-radius:12px;margin-bottom:10px}
+  .add-ex-toggle{padding:12px 16px;color:var(--accent);font-family:'Barlow Condensed';font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12px;cursor:pointer;text-align:center}
   .add-ex-toggle:active{opacity:.6}
   .add-ex-form{display:none;padding:0 16px 14px;gap:8px;flex-direction:column}
   .add-ex.open .add-ex-form{display:flex}
   .add-ex-form .btn{margin:0}
+
+  /* Merged workout+log exercise cards */
+  .ex-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+  .ex-card.done{border-color:var(--accent-dim)}
+  .ex-head{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;user-select:none}
+  .ex-badge{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-family:'Barlow Condensed';font-weight:700;font-size:14px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted)}
+  .ex-card.done .ex-badge{background:var(--accent);border-color:var(--accent);color:#06231a}
+  .ex-head .ex-main{flex:1;min-width:0}
+  .ex-head .ex-name{font-size:14px;font-weight:600;line-height:1.2}
+  .ex-sub{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
+  .ex-sub b{color:var(--hot);font-weight:600}
+  .ex-last{color:var(--accent)}
+  .ex-head .ex-note{font-size:11px;color:var(--accent);font-style:italic;margin-top:3px}
+  .ex-head .vid{flex:none;width:32px;height:32px;border-radius:9px;background:var(--panel-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent);text-decoration:none}
+  .ex-head .chev{color:var(--muted);transition:transform .2s;flex:none}
+  .ex-card.open .chev{transform:rotate(90deg)}
+  .ex-log{display:none;padding:0 14px 14px;border-top:1px solid var(--line)}
+  .ex-card.open .ex-log{display:block}
+  .ex-log .set-grid.set-line:first-of-type{margin-top:10px}
+  .ex-save{margin-top:12px}
 
   /* Forms */
   label.fld{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-family:'Barlow Condensed';font-weight:600;margin-bottom:5px}
@@ -535,23 +553,20 @@
     </div>
   </section>
 
-  <!-- WORKOUT -->
+  <!-- WORKOUT (merged with logging) -->
   <section class="view" id="v-workout">
     <div class="coach-launch" id="coach-launch-w">
       <div class="ci"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
       <div class="ct"><b>Ask your coach</b><span>Sore shoulder? Tweak today's session? Ask before you start.</span></div>
       <div class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div>
     </div>
+    <div class="pill-row" id="wk-day-pills" style="margin-top:2px"></div>
     <div id="workout-body"></div>
-  </section>
+    <div id="wk-saveall-wrap" style="display:none"><button class="btn" id="wk-saveall">Save all entered sets</button></div>
 
-  <!-- LOG -->
-  <section class="view" id="v-log">
-    <div class="eyebrow" style="margin-top:4px">Pick today's session</div>
-    <div class="pill-row" id="log-day-pills"></div>
-    <div id="log-routine"></div>
     <div class="eyebrow">History</div>
     <div id="log-list"></div>
+
     <div class="eyebrow">Weigh-in</div>
     <div class="wi-add">
       <input id="wi-val" inputmode="decimal" placeholder="Weight in kg (e.g. 82.4)">
@@ -645,8 +660,6 @@
     <svg viewBox="0 0 24 24"><path d="M3 10.5L12 4l9 6.5M5 9.5V20h14V9.5"/><path d="M9 20v-6h6v6"/></svg>Today</button>
   <button data-v="workout">
     <svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M4 9h2M4 15h2M18 9h2M18 15h2M6 12h12"/></svg>Workout</button>
-  <button data-v="log">
-    <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Log</button>
   <button data-v="supps">
     <svg viewBox="0 0 24 24"><path d="M10.5 20.5l10-10a5 5 0 00-7-7l-10 10a5 5 0 007 7z"/><path d="M8.5 8.5l7 7"/></svg>Supps</button>
   <button data-v="food">
@@ -699,7 +712,7 @@ const AI_READY = /^https?:\/\//.test(PROXY_URL) && !PROXY_URL.includes("PASTE_YO
    newer, force-reloads once with a fresh URL so iOS/Safari can't serve
    a stale home-screen copy.
    ============================================================ */
-const APP_VERSION = 21;   // <-- increment this each deploy (22, 23, ...)
+const APP_VERSION = 22;   // <-- increment this each deploy (23, 24, ...)
 (function checkForUpdate(){
   try{
     // only run on the live site, not file:// previews
@@ -977,6 +990,7 @@ const GOAL_OPTS=['Build muscle','Lose fat','Get stronger','General fitness','Spo
 const EXP_OPTS=['Beginner','Intermediate','Advanced'];
 const EQUIP_OPTS=['Full gym','Dumbbells','Barbell','Kettlebell','Bands','Bodyweight only'];
 let goalSel={goal:'',exp:'',equip:[]};
+let openEx=null;  // currently-expanded exercise "di-ei" on the Workout tab
 
 function renderChips(){
   const g=$('#goal-chips'),e=$('#exp-chips'),q=$('#equip-chips');
@@ -1191,75 +1205,159 @@ function needPlan(el,msg){
 }
 function renderWorkout(){
   const c=$('#workout-body');
-  if(!plan){needPlan(c,"No plan yet.");return}
-  c.innerHTML='';
-  plan.days.forEach((day,di)=>{
-    const open=di===openDay;
-    const el=document.createElement('div');
-    el.className='day'+(open?' open':'');
-    const doneCount=day.ex.filter((_,ei)=>checks[di+'-'+ei]).length;
-    el.innerHTML=`
-      <div class="day-head">
-        <span class="num${day.opt?' opt':''}">D${di+1}</span>
-        <span class="day-title">${esc(day.t)}<small>${esc(day.sub||'')} · ${doneCount}/${day.ex.length} done</small></span>
-        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+  const pills=$('#wk-day-pills');
+  if(!plan||!plan.days||!plan.days.length){pills.innerHTML='';needPlan(c,"No plan yet.");$('#wk-saveall-wrap').style.display='none';return}
+  if(logDay>=plan.days.length)logDay=0;
+  // day picker
+  pills.innerHTML=plan.days.map((d,i)=>`<button class="pill${i===logDay?' on':''}" data-wd="${i}">${esc(d.t)}</button>`).join('');
+  pills.querySelectorAll('.pill').forEach(b=>b.onclick=()=>{logDay=+b.dataset.wd;DB.set('logDay',logDay);renderWorkout()});
+  $('#wk-saveall-wrap').style.display='block';
+
+  const di=logDay;const day=plan.days[di];
+  c.innerHTML=`<div class="wk-day">
+    ${day.ex.map((e,ei)=>exerciseCard(e,di,ei)).join('')}
+    <div class="add-ex" data-addex="${di}">
+      <div class="add-ex-toggle">+ add your own exercise</div>
+      <div class="add-ex-form">
+        <input class="ae-name" placeholder="Exercise name (e.g. Cable fly)">
+        <input class="ae-sets" placeholder="Sets × reps (e.g. 3 × 12)">
+        <button class="btn ae-save">Add to ${esc(day.t)}</button>
       </div>
-      <div class="day-body">
-        ${day.ex.map((e,ei)=>{
-          const on=checks[di+'-'+ei];
-          return `<div class="ex${on?' done':''}">
-            <div class="check${on?' on':''}" data-c="${di}-${ei}">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#06231a" stroke-width="3.5"><path d="M5 13l4 4L19 7"/></svg>
-            </div>
-            <div class="ex-main"><div class="ex-name">${esc(e.name)}${e.custom?' <span class="cust-tag">added</span>':''}</div><div class="ex-sets"><b>${esc(e.sets||'')}</b></div>${e.note?`<div class="ex-note">${esc(e.note)}</div>`:''}</div>
-            <a class="vid" href="${e.v}" target="_blank" rel="noopener" title="Form video">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            </a>
-            ${e.custom?`<button class="ex-del" data-exdel="${di}-${ei}" title="Remove">×</button>`:''}
-          </div>`}).join('')}
-        <div class="add-ex" data-addex="${di}">
-          <div class="add-ex-toggle">+ add your own exercise</div>
-          <div class="add-ex-form">
-            <input class="ae-name" placeholder="Exercise name (e.g. Cable fly)">
-            <input class="ae-sets" placeholder="Sets × reps (e.g. 3 × 12)">
-            <button class="btn ae-save">Add to ${esc(day.t)}</button>
-          </div>
-        </div>
-        <button class="reset-day" data-reset="${di}">Clear ${esc(day.t)} ticks</button>
-      </div>`;
-    el.querySelector('.day-head').onclick=()=>{openDay=open?-1:di;DB.set('openDay',openDay);renderWorkout()};
-    el.querySelectorAll('.check').forEach(ch=>ch.onclick=e=>{
-      e.stopPropagation();const k=ch.dataset.c;checks[k]=!checks[k];if(!checks[k])delete checks[k];DB.set('checks',checks);renderWorkout();
-    });
-    el.querySelectorAll('[data-exdel]').forEach(b=>b.onclick=e=>{
-      e.stopPropagation();
-      const [d,x]=b.dataset.exdel.split('-').map(Number);
-      plan.days[d].ex.splice(x,1);
-      // reindex checks for this day (drop the removed one, shift the rest)
-      const nc={};Object.keys(checks).forEach(k=>{const[kd,kx]=k.split('-').map(Number);if(kd!==d){nc[k]=checks[k]}else if(kx<x){nc[k]=checks[k]}else if(kx>x){nc[kd+'-'+(kx-1)]=checks[k]}});
-      checks=nc;DB.set('plan',plan);DB.set('checks',checks);renderWorkout();renderRoutine();toast('Removed');
-    });
-    // add-exercise UI
-    const addWrap=el.querySelector('.add-ex');
-    const toggle=addWrap.querySelector('.add-ex-toggle');
-    toggle.onclick=e=>{e.stopPropagation();addWrap.classList.toggle('open');if(addWrap.classList.contains('open'))addWrap.querySelector('.ae-name').focus()};
-    addWrap.querySelector('.ae-save').onclick=e=>{
-      e.stopPropagation();
-      const nm=addWrap.querySelector('.ae-name').value.trim();
-      const st=addWrap.querySelector('.ae-sets').value.trim();
-      if(!nm){toast('Enter an exercise name');return}
-      const dIdx=+addWrap.dataset.addex;
-      plan.days[dIdx].ex.push({name:nm,sets:st||'3 × 10',note:'',v:ytLink(nm),custom:true});
-      DB.set('plan',plan);renderWorkout();renderRoutine();toast('Added — video linked');
-      // reopen the day so they see it
-      openDay=dIdx;DB.set('openDay',openDay);renderWorkout();
+    </div>
+  </div>`;
+  wireExerciseCards(c,di,day);
+  // add-exercise UI
+  const addWrap=c.querySelector('.add-ex');
+  const toggle=addWrap.querySelector('.add-ex-toggle');
+  toggle.onclick=()=>{addWrap.classList.toggle('open');if(addWrap.classList.contains('open'))addWrap.querySelector('.ae-name').focus()};
+  addWrap.querySelector('.ae-save').onclick=()=>{
+    const nm=addWrap.querySelector('.ae-name').value.trim();
+    const st=addWrap.querySelector('.ae-sets').value.trim();
+    if(!nm){toast('Enter an exercise name');return}
+    plan.days[di].ex.push({name:nm,sets:st||'3 × 10',note:'',v:ytLink(nm),custom:true});
+    saveCurrentGoal();DB.set('plan',plan);renderWorkout();toast('Added — video linked');
+  };
+  // save all
+  $('#wk-saveall').onclick=()=>{
+    let n=0;c.querySelectorAll('.ex-card').forEach(card=>{if(saveExercise(card,di,day,true))n++});
+    if(!n){toast('Nothing entered to save');return}
+    DB.set('logs',logs);DB.set('checks',checks);renderWorkout();renderLog();renderToday();
+    toast(n+' exercise'+(n>1?'s':'')+' saved');
+  };
+}
+function exerciseCard(e,di,ei){
+  const clean=e.name.replace(/ ?\(.*?\)/g,'').trim();
+  const last=lastEntry(clean);
+  const done=checks[di+'-'+ei];
+  const open=(openEx===di+'-'+ei);
+  const lastTxt=last?`Last: ${lastSummary(last)}${last.feel?` · ${esc(FEEL_SHORT[last.feel]||last.feel)}`:''}`:'No history yet';
+  const pk=n=>last?(last['kg'+n]||last.wt||''):'';
+  const pr=n=>last?(last['s'+n]||''):'';
+  const nsets=setsFor(e);
+  return `<div class="ex-card${done?' done':''}${open?' open':''}" data-i="${ei}" data-nsets="${nsets}">
+    <div class="ex-head">
+      <div class="ex-badge">${done?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#06231a" stroke-width="3.5"><path d="M5 13l4 4L19 7"/></svg>':(ei+1)}</div>
+      <div class="ex-main">
+        <div class="ex-name">${esc(clean)}${e.custom?' <span class="cust-tag">added</span>':''}</div>
+        <div class="ex-sub"><b>${esc(e.sets||'')}</b> · <span class="ex-last">${lastTxt}</span></div>
+        ${e.note?`<div class="ex-note">${esc(e.note)}</div>`:''}
+      </div>
+      <a class="vid" href="${e.v}" target="_blank" rel="noopener" title="Form video" onclick="event.stopPropagation()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </a>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+    <div class="ex-log">
+      <div class="set-grid set-line"><div class="ph"></div><div class="ph">kg</div><div class="ph">reps</div></div>
+      <div class="set-rows">
+      ${Array.from({length:nsets},(_,k)=>k+1).map(n=>`<div class="set-grid set-line">
+        <div class="slabel">${n}</div>
+        <input data-f="kg${n}" inputmode="decimal" placeholder="${pk(n)}">
+        <input data-f="s${n}" inputmode="numeric" placeholder="${pr(n)}">
+      </div>`).join('')}
+      </div>
+      <button class="add-set" data-add>+ add set</button>
+      <div class="feel-wrap">
+        <span class="ph">How did it feel? (optional)</span>
+        <select data-f="feel" onchange="this.classList.toggle('set',!!this.value)">
+          ${FEEL_OPTS.map(f=>`<option value="${f.v}"${last&&last.feel===f.v?' selected':''}>${f.label}</option>`).join('')}
+        </select>
+      </div>
+      <div class="rest-row">
+        <span class="rest-lbl">Rest</span>
+        <button class="rest-btn" data-rest-sec="60">60s</button>
+        <button class="rest-btn" data-rest-sec="90">90s</button>
+        <button class="rest-btn" data-rest-sec="120">2m</button>
+        <button class="rest-btn" data-rest-sec="180">3m</button>
+      </div>
+      <button class="btn ex-save" data-exsave="${ei}">Save ${esc(clean)}</button>
+    </div>
+  </div>`;
+}
+function wireExerciseCards(c,di,day){
+  c.querySelectorAll('.ex-card').forEach(card=>{
+    const ei=+card.dataset.i;
+    // expand/collapse
+    card.querySelector('.ex-head').onclick=()=>{
+      const key=di+'-'+ei;openEx=(openEx===key)?null:key;renderWorkout();
     };
-    el.querySelector('[data-reset]').onclick=e=>{
-      e.stopPropagation();day.ex.forEach((_,ei)=>delete checks[di+'-'+ei]);DB.set('checks',checks);renderWorkout();toast(day.t+' cleared');
+    // pre-mark feel
+    card.querySelectorAll('select[data-f="feel"]').forEach(s=>{if(s.value)s.classList.add('set')});
+    // rest timer
+    card.querySelectorAll('[data-rest-sec]').forEach(b=>b.onclick=e=>{e.stopPropagation();startRest(+b.dataset.restSec)});
+    // add set
+    card.querySelectorAll('[data-add]').forEach(btn=>btn.onclick=e=>{
+      e.stopPropagation();
+      const holder=card.querySelector('.set-rows');
+      const n=holder.querySelectorAll('.set-line').length+1;
+      if(n>10){toast('That is plenty of sets!');return}
+      const div=document.createElement('div');div.className='set-grid set-line';
+      div.innerHTML=`<div class="slabel">${n}</div><input data-f="kg${n}" inputmode="decimal"><input data-f="s${n}" inputmode="numeric">`;
+      holder.appendChild(div);
+    });
+    // remove custom exercise (long-press not available; use the save-row area) — handled via Plan; keep simple here
+    // per-exercise save
+    card.querySelector('.ex-save').onclick=e=>{
+      e.stopPropagation();
+      if(saveExercise(card,di,day,false)){
+        DB.set('logs',logs);DB.set('checks',checks);renderLog();renderToday();
+        toast('Saved ✓');
+        // collapse this one, open the next unsaved
+        const next=findNextUnsaved(di,ei);
+        openEx=next!=null?di+'-'+next:null;
+        renderWorkout();
+        // offer a rest by default
+        startRest(90);
+      }else{
+        toast('Enter at least one set first');
+      }
     };
-    c.appendChild(el);
   });
 }
+/* returns true if it saved something */
+function saveExercise(card,di,day,silent){
+  const ei=+card.dataset.i;
+  const clean=day.ex[ei].name.replace(/ ?\(.*?\)/g,'').trim();
+  const g=f=>{const el=card.querySelector(`[data-f="${f}"]`);return el?el.value.trim():''};
+  const nsets=card.querySelectorAll('.set-rows .set-line').length;
+  const rec={ex:clean,day:day.t,feel:g('feel'),ts:Date.now(),nsets};
+  let any=false;
+  for(let n=1;n<=nsets;n++){const kg=g('kg'+n),reps=g('s'+n);rec['kg'+n]=kg;rec['s'+n]=reps;if(kg||reps)any=true}
+  if(!any)return false;
+  rec.wt=rec.kg1||rec.kg2||rec.kg3||'';
+  logs.push(rec);
+  checks[di+'-'+ei]=true;  // saving marks it done
+  return true;
+}
+function findNextUnsaved(di,fromEi){
+  const day=plan.days[di];
+  for(let i=fromEi+1;i<day.ex.length;i++){if(!checks[di+'-'+i])return i}
+  for(let i=0;i<fromEi;i++){if(!checks[di+'-'+i])return i}
+  return null;
+}
+/* renderRoutine kept as an alias so older callers still work */
+function renderRoutine(){renderWorkout()}
+
 
 /* ============================================================
    LOG VIEW
@@ -1293,100 +1391,6 @@ function lastSummary(l){
     sets.push((kg?kg+'kg':'')+(kg&&reps?'×':'')+(reps?reps:''));
   }
   return sets.length?sets.join(', '):'—';
-}
-function renderLogDayPills(){
-  const p=$('#log-day-pills');
-  if(!plan){p.innerHTML='';return}
-  p.innerHTML=plan.days.map((d,i)=>`<button class="pill${i===logDay?' on':''}" data-ld="${i}">${esc(d.t)}</button>`).join('');
-  p.querySelectorAll('.pill').forEach(b=>b.onclick=()=>{logDay=+b.dataset.ld;DB.set('logDay',logDay);renderRoutine()});
-}
-function renderRoutine(){
-  renderLogDayPills();
-  const c=$('#log-routine');
-  if(!plan){c.innerHTML='';return}
-  if(logDay>=plan.days.length)logDay=0;
-  const day=plan.days[logDay];
-  c.innerHTML=`<div class="routine">
-    ${day.ex.map((e,i)=>{
-      const clean=e.name.replace(/ ?\(.*?\)/g,'').trim();
-      const last=lastEntry(clean);
-      const lastTxt=last?`Last: <b>${lastSummary(last)}</b>${last.feel?` · felt: ${esc(FEEL_SHORT[last.feel]||last.feel)}`:''}`:'No history yet';
-      // backward-compatible per-set placeholders (old logs used one shared wt)
-      const pk=n=>last?(last['kg'+n]||last.wt||''):'';
-      const pr=n=>last?(last['s'+n]||''):'';
-      return `<div class="rt-row" data-i="${i}" data-nsets="${setsFor(e)}">
-        <div class="rt-top"><div class="rt-name">${esc(clean)}</div><div class="rt-target">${esc(e.sets||'')}</div></div>
-        <div class="rt-last">${lastTxt}</div>
-        <div class="set-grid set-line"><div class="ph"></div><div class="ph">kg</div><div class="ph">reps</div></div>
-        <div class="set-rows">
-        ${Array.from({length:setsFor(e)},(_,k)=>k+1).map(n=>`<div class="set-grid set-line">
-          <div class="slabel">${n}</div>
-          <input data-f="kg${n}" inputmode="decimal" placeholder="${pk(n)}">
-          <input data-f="s${n}" inputmode="numeric" placeholder="${pr(n)}">
-        </div>`).join('')}
-        </div>
-        <button class="add-set" data-add>+ add set</button>
-        <div class="feel-wrap">
-          <span class="ph">How did it feel? (optional)</span>
-          <select data-f="feel" onchange="this.classList.toggle('set',!!this.value)">
-            ${FEEL_OPTS.map(f=>`<option value="${f.v}"${last&&last.feel===f.v?' selected':''}>${f.label}</option>`).join('')}
-          </select>
-        </div>
-      </div>`}).join('')}
-    <div class="rest-row">
-      <span class="rest-lbl">Rest timer</span>
-      <button class="rest-btn" data-rest-sec="60">60s</button>
-      <button class="rest-btn" data-rest-sec="90">90s</button>
-      <button class="rest-btn" data-rest-sec="120">2m</button>
-      <button class="rest-btn" data-rest-sec="180">3m</button>
-    </div>
-    <div class="rt-foot">
-      <button class="btn ghost" id="rt-clear">Clear</button>
-      <button class="btn" id="rt-save">Save ${esc(day.t)} session</button>
-    </div>
-  </div>`;
-  // rest timer buttons
-  c.querySelectorAll('[data-rest-sec]').forEach(b=>b.onclick=()=>startRest(+b.dataset.restSec));
-  // mark pre-selected feel dropdowns
-  c.querySelectorAll('select[data-f="feel"]').forEach(s=>{if(s.value)s.classList.add('set')});
-  // add-set buttons
-  c.querySelectorAll('[data-add]').forEach(btn=>btn.onclick=()=>{
-    const row=btn.closest('.rt-row');
-    const holder=row.querySelector('.set-rows');
-    const n=holder.querySelectorAll('.set-line').length+1;
-    if(n>10){toast('That is plenty of sets!');return}
-    const div=document.createElement('div');div.className='set-grid set-line';
-    div.innerHTML=`<div class="slabel">${n}</div>
-      <input data-f="kg${n}" inputmode="decimal">
-      <input data-f="s${n}" inputmode="numeric">`;
-    holder.appendChild(div);
-  });
-  $('#rt-clear').onclick=()=>{
-    c.querySelectorAll('.set-grid input').forEach(i=>i.value='');
-    c.querySelectorAll('select[data-f="feel"]').forEach(s=>{s.value='';s.classList.remove('set')});
-  };
-  $('#rt-save').onclick=()=>{
-    let saved=0;const ts=Date.now();
-    c.querySelectorAll('.rt-row').forEach(row=>{
-      const i=+row.dataset.i;const clean=day.ex[i].name.replace(/ ?\(.*?\)/g,'').trim();
-      const g=f=>{const el=row.querySelector(`[data-f="${f}"]`);return el?el.value.trim():''};
-      const nsets=row.querySelectorAll('.set-rows .set-line').length;
-      const rec={ex:clean,day:day.t,feel:g('feel'),ts,nsets};
-      let any=false;
-      for(let n=1;n<=nsets;n++){
-        const kg=g('kg'+n),reps=g('s'+n);
-        rec['kg'+n]=kg;rec['s'+n]=reps;
-        if(kg||reps)any=true;
-      }
-      if(any){
-        rec.wt=rec.kg1||rec.kg2||rec.kg3||'';  // backward-compat
-        logs.push(rec);saved++;
-      }
-    });
-    if(!saved){toast('Fill in at least one set');return}
-    DB.set('logs',logs);renderRoutine();renderLog();toast(saved+' exercise'+(saved>1?'s':'')+' logged');
-    window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
-  };
 }
 function renderLog(){
   const c=$('#log-list');
@@ -2231,6 +2235,7 @@ $$('nav button').forEach(b=>b.onclick=()=>{
   $$('.view').forEach(v=>v.classList.remove('active'));
   $('#v-'+b.dataset.v).classList.add('active');
   if(b.dataset.v==='today')renderToday();
+  if(b.dataset.v==='workout'){renderWorkout();renderLog();renderWeight();}
   if(b.dataset.v==='food'){renderFood();maybeAutoRebuildWeek();}
   if(b.dataset.v==='supps')renderSupps();
   if(b.dataset.v==='goals')loadGoalsForm();
