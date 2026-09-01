@@ -114,6 +114,35 @@
   .ex-card.open .ex-log{display:block}
   .ex-log .set-grid.set-line:first-of-type{margin-top:10px}
   .ex-save{margin-top:12px}
+  .draft-tag{font-family:'Barlow Condensed';font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--hot);background:var(--hot-dim);border-radius:4px;padding:1px 5px;vertical-align:1px;margin-left:5px}
+  .ex-card.has-draft{border-color:var(--hot)}
+  .ex-card.has-draft.done{border-color:var(--accent-dim)}
+  /* Superset mode */
+  .ss-bar{display:flex;gap:8px;margin-bottom:12px}
+  .ss-toggle{font-family:'Barlow Condensed';font-weight:600;font-size:14px;letter-spacing:.04em;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+  .ss-toggle.on{background:var(--accent);border-color:var(--accent);color:#06231a}
+  .ss-toggle.small{font-size:13px}
+  .ss-toggle:disabled{opacity:.4;cursor:default}
+  .ss-hint{font-size:12px;color:var(--muted);margin:-6px 2px 12px;font-family:'Barlow Condensed';font-weight:600;letter-spacing:.03em}
+  .ss-hint .spin{margin-right:6px}
+  .setting-row{display:flex;align-items:center;gap:12px}
+  .setting-t{font-size:14px;font-weight:600}
+  .setting-s{font-size:12px;color:var(--muted);line-height:1.4;margin-top:2px}
+  .switch{flex:none;width:48px;height:28px;border-radius:999px;border:1px solid var(--line);background:var(--panel-2);position:relative;cursor:pointer;transition:.2s;margin-left:auto}
+  .switch::after{content:'';position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:var(--muted);transition:.2s}
+  .switch.on{background:var(--accent);border-color:var(--accent)}
+  .switch.on::after{background:#06231a;transform:translateX(20px)}
+  .ss-group{border:2px solid var(--line);border-radius:14px;padding:10px;margin-bottom:16px}
+  .ss-label{font-family:'Barlow Condensed';font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;padding-left:2px}
+  .ss-group .ex-card{margin-bottom:8px}
+  .ss-rest{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 2px 2px}
+  .ss-group .ex-badge{background:transparent}
+  /* colour-coded groups */
+  .ssg-0{border-color:#39d98a}.ssg-0 .ss-label{color:#39d98a}.ssg-0 .ex-badge{color:#39d98a;border-color:#39d98a}
+  .ssg-1{border-color:#ff7849}.ssg-1 .ss-label{color:#ff7849}.ssg-1 .ex-badge{color:#ff7849;border-color:#ff7849}
+  .ssg-2{border-color:#4aa8ff}.ssg-2 .ss-label{color:#4aa8ff}.ssg-2 .ex-badge{color:#4aa8ff;border-color:#4aa8ff}
+  .ssg-3{border-color:#c77dff}.ssg-3 .ss-label{color:#c77dff}.ssg-3 .ex-badge{color:#c77dff;border-color:#c77dff}
+  .ssg-4{border-color:#ffd23f}.ssg-4 .ss-label{color:#ffd23f}.ssg-4 .ex-badge{color:#ffd23f;border-color:#ffd23f}
 
   /* Forms */
   label.fld{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-family:'Barlow Condensed';font-weight:600;margin-bottom:5px}
@@ -492,6 +521,18 @@
     </div>
     <div id="rep-body"></div>
 
+    <div class="eyebrow">Settings</div>
+    <div class="card">
+      <label class="fld">Rest timer alert</label>
+      <div class="chip-row" id="tone-chips"></div>
+      <button class="btn ghost" id="tone-test" style="margin-top:8px">Test sound</button>
+      <div class="setting-row" style="margin-top:14px">
+        <div><div class="setting-t">Keep screen awake</div><div class="setting-s">Stops the screen dimming while the app is open (great mid-workout).</div></div>
+        <button class="switch" id="wake-switch" role="switch"></button>
+      </div>
+      <div class="note-line" style="margin-top:8px">Sound needs your phone off silent. Vibration also fires. This can't override your phone's own auto-lock when you leave the app.</div>
+    </div>
+
     <div class="eyebrow">Backup &amp; account</div>
     <div class="card">
       <div class="txt" style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">Your data is saved in this browser. Export a backup now and then so you never lose your history — then Import it on a new device.</div>
@@ -712,7 +753,7 @@ const AI_READY = /^https?:\/\//.test(PROXY_URL) && !PROXY_URL.includes("PASTE_YO
    newer, force-reloads once with a fresh URL so iOS/Safari can't serve
    a stale home-screen copy.
    ============================================================ */
-const APP_VERSION = 22;   // <-- increment this each deploy (23, 24, ...)
+const APP_VERSION = 24;   // <-- increment this each deploy (25, 26, ...)
 (function checkForUpdate(){
   try{
     // only run on the live site, not file:// previews
@@ -787,6 +828,12 @@ function loadUserData(){
   suppPlan= DB.get('suppPlan',null);  // AI supplement plan {goalId, items:[...], general:[...], built}
   habits  = DB.get('habits',{});      // {dateStr:{water,sleep,steps}}
   photos  = DB.get('photos',[]);      // progress photos (compressed)
+  superOn = DB.get('superOn',false);
+  superTriple = DB.get('superTriple',false);
+  ssGroups = DB.get('ssGroups',{});
+  restTone = DB.get('restTone','double');
+  keepAwakePref = DB.get('keepAwake',false);
+  exDraft = {};                       // unsaved drafts don't persist across reloads
   goals   = DB.get('goals',null);
   primaryId = DB.get('primaryId',null);
   // --- migration: turn an existing single goal into the goals list ---
@@ -857,9 +904,38 @@ const fmtDate=ts=>new Date(ts).toLocaleDateString('en-AU',{day:'numeric',month:'
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600)}
 /* ---------- Rest timer ---------- */
 let restLeft=0,restInt=null;
+let restTone='double',keepAwakePref=false;   // loaded per user
+let audioCtx=null;
+function ensureAudio(){
+  // must be called from a user gesture (a tap) to satisfy iOS autoplay rules
+  try{
+    if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+  }catch(e){}
+}
+function tone(freq,start,dur){
+  if(!audioCtx)return;
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);o.type='sine';o.frequency.value=freq;
+  const t=audioCtx.currentTime+start;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.35,t+.02);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.start(t);o.stop(t+dur+.02);
+}
+function playAlert(){
+  ensureAudio();
+  switch(restTone){
+    case 'single': tone(880,0,.45); break;
+    case 'chime': tone(660,0,.3);tone(880,.28,.3);tone(1175,.56,.5); break;
+    case 'silent': break;
+    case 'double':
+    default: tone(880,0,.28);tone(880,.34,.4);
+  }
+}
 function fmtRest(s){const m=Math.floor(s/60),ss=s%60;return m+':'+String(ss).padStart(2,'0')}
 function paintRest(){const el=$('#restTime');if(el)el.textContent=fmtRest(Math.max(0,restLeft))}
 function startRest(sec){
+  ensureAudio();  // unlock audio on the tap that starts the timer
   const bar=$('#restTimer');bar.classList.remove('done');bar.classList.add('show');
   restLeft=sec;paintRest();
   clearInterval(restInt);
@@ -869,23 +945,12 @@ function startRest(sec){
       clearInterval(restInt);restInt=null;
       bar.classList.add('done');
       try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}
-      beep();
+      playAlert();
       setTimeout(()=>{bar.classList.remove('show','done')},4000);
     }
   },1000);
 }
 function stopRest(){clearInterval(restInt);restInt=null;$('#restTimer').classList.remove('show','done')}
-function beep(){
-  try{
-    const ctx=new (window.AudioContext||window.webkitAudioContext)();
-    const o=ctx.createOscillator(),g=ctx.createGain();
-    o.connect(g);g.connect(ctx.destination);o.frequency.value=880;o.type='sine';
-    g.gain.setValueAtTime(.001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.3,ctx.currentTime+.02);
-    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.5);
-    o.start();o.stop(ctx.currentTime+.5);
-  }catch(e){}
-}
-document.addEventListener('DOMContentLoaded',()=>{});
 $('#restCancel').onclick=stopRest;
 $('#restPlus').onclick=()=>{restLeft+=15;if(!restInt){$('#restTimer').classList.remove('done');$('#restTimer').classList.add('show');startRest(restLeft)}else paintRest()};
 
@@ -991,6 +1056,9 @@ const EXP_OPTS=['Beginner','Intermediate','Advanced'];
 const EQUIP_OPTS=['Full gym','Dumbbells','Barbell','Kettlebell','Bands','Bodyweight only'];
 let goalSel={goal:'',exp:'',equip:[]};
 let openEx=null;  // currently-expanded exercise "di-ei" on the Workout tab
+let exDraft={};   // in-memory unsaved inputs, keyed "di-ei" → {kg1,s1,...,feel,nsets}
+let superOn=false, superTriple=false;  // superset mode toggles
+let ssGroups={};  // cached AI muscle-group pairings, keyed by goal+day+size+exercises
 
 function renderChips(){
   const g=$('#goal-chips'),e=$('#exp-chips'),q=$('#equip-chips');
@@ -1039,6 +1107,7 @@ function switchGoal(id){
   // save what's on screen into the current goal first
   Object.assign(profile,collectGoals());saveCurrentGoal();
   primaryId=id;DB.set('primaryId',primaryId);
+  exDraft={};openEx=null;  // different exercises now
   syncPrimary();pointWeekAtGoal();
   loadGoalsForm();renderWorkout();renderRoutine();renderLog();
   setMode(plan?plan.mode:'Your Plan');updateHeaderGoal();
@@ -1203,7 +1272,70 @@ function cycleGoal(){
 function needPlan(el,msg){
   el.innerHTML=`<div class="empty">${msg}<br><br>Head to the <b>Plan</b> tab and build one with the coach.</div>`;
 }
+/* ---- unsaved-input persistence: capture everything typed before a re-render ---- */
+function captureDrafts(){
+  const cont=$('#workout-body');if(!cont)return;
+  cont.querySelectorAll('.ex-card').forEach(card=>{
+    const key=card.dataset.key;if(!key)return;
+    if(checks[key]){delete exDraft[key];return}  // already saved — no draft
+    const nsets=card.querySelectorAll('.set-rows .set-line').length;
+    const d={nsets};let any=false;
+    const g=f=>{const el=card.querySelector(`[data-f="${f}"]`);return el?el.value:''};
+    for(let n=1;n<=nsets;n++){d['kg'+n]=g('kg'+n);d['s'+n]=g('s'+n);if(d['kg'+n]||d['s'+n])any=true}
+    const fe=card.querySelector('[data-f="feel"]');d.feel=fe?fe.value:'';
+    if(any||d.feel)exDraft[key]=d;else delete exDraft[key];
+  });
+}
+/* group exercises into supersets of 2 (or 3 if extreme). Returns [[ei,ei],...] */
+/* fallback sequential pairing */
+function seqGroups(day){
+  const n=day.ex.length,size=superTriple?3:2,out=[];
+  for(let i=0;i<n;i+=size){const g=[];for(let j=i;j<i+size&&j<n;j++)g.push(j);out.push(g)}
+  return out;
+}
+/* cache key ties grouping to this goal + day + exercise list + size, so it
+   only recomputes when the day's exercises or the pair/triple mode change */
+function ssCacheKey(){
+  const day=plan.days[logDay];
+  const names=day.ex.map(e=>e.name).join('|');
+  return (primaryId||'g')+'::'+logDay+'::'+(superTriple?3:2)+'::'+names;
+}
+function supersetGroups(day){
+  const cached=ssGroups[ssCacheKey()];
+  if(cached&&cached.length){
+    // validate indices still in range
+    const valid=cached.every(g=>g.every(i=>i<day.ex.length));
+    if(valid)return cached;
+  }
+  return seqGroups(day);  // until AI grouping arrives
+}
+async function computeSupersetGroups(){
+  const day=plan.days[logDay];
+  const key=ssCacheKey();
+  if(ssGroups[key])return;           // already have it
+  if(!AI_READY)return;               // no proxy → keep sequential
+  const size=superTriple?3:2;
+  const list=day.ex.map((e,i)=>`${i}: ${e.name} (${e.sets||''})`).join('\n');
+  const prompt=`You are a strength coach organising a workout into supersets to save time. Group these exercises into supersets of ${size} where it makes sense, pairing by what is SAFE and EFFICIENT to do back-to-back — generally antagonist or non-competing muscle groups (e.g. a push with a pull, or upper with lower), avoiding pairing two heavy compound lifts that share the same muscles or would compromise form. Keep heavy compound barbell lifts alone if pairing would hurt performance (put them in a group by themselves).
+
+Exercises (index: name):
+${list}
+
+Return ONLY valid JSON, no commentary: {"groups":[[0,2],[1,3],...]} where each inner array is the exercise indices in one superset. Every index 0..${day.ex.length-1} must appear exactly once. Prefer groups of ${size} but a leftover single is fine.`;
+  try{
+    const obj=extractJSON(await callClaude([{role:'user',content:prompt}],700));
+    let groups=(obj.groups||[]).filter(g=>Array.isArray(g)&&g.length);
+    // validate: every index present exactly once
+    const flat=groups.flat();
+    const need=day.ex.map((_,i)=>i);
+    const ok=flat.length===need.length && need.every(i=>flat.includes(i));
+    if(!ok)throw new Error('bad grouping');
+    ssGroups[key]=groups;DB.set('ssGroups',ssGroups);
+    renderWorkout();
+  }catch(e){/* keep sequential fallback silently */}
+}
 function renderWorkout(){
+  captureDrafts();  // keep anything typed before we redraw
   const c=$('#workout-body');
   const pills=$('#wk-day-pills');
   if(!plan||!plan.days||!plan.days.length){pills.innerHTML='';needPlan(c,"No plan yet.");$('#wk-saveall-wrap').style.display='none';return}
@@ -1214,8 +1346,33 @@ function renderWorkout(){
   $('#wk-saveall-wrap').style.display='block';
 
   const di=logDay;const day=plan.days[di];
-  c.innerHTML=`<div class="wk-day">
-    ${day.ex.map((e,ei)=>exerciseCard(e,di,ei)).join('')}
+  const haveAI=superOn && ssGroups[ssCacheKey()];
+  const bar=`<div class="ss-bar">
+    <button class="ss-toggle${superOn?' on':''}" id="ss-toggle">${superOn?'◉':'○'} Superset mode</button>
+    <button class="ss-toggle small${superTriple?' on':''}" id="ss-triple"${superOn?'':' disabled'}>Extreme ×3</button>
+  </div>${superOn?`<div class="ss-hint">${haveAI?'✓ Paired by muscle group':(AI_READY?'<span class="spin"></span>Coach is pairing by muscle group…':'Sequential pairing (AI offline)')}</div>`:''}`;
+
+  let body;
+  if(superOn){
+    const groups=supersetGroups(day);
+    body=groups.map((g,gi)=>{
+      const letter=String.fromCharCode(65+gi);
+      return `<div class="ss-group ssg-${gi%5}">
+        <div class="ss-label">Superset ${letter} · ${g.length} moves back-to-back</div>
+        ${g.map((ei,idx)=>exerciseCard(day.ex[ei],di,ei,letter+(idx+1))).join('')}
+        <div class="ss-rest"><span class="rest-lbl">Rest after ${letter}</span>
+          <button class="rest-btn" data-rest-sec="60">60s</button>
+          <button class="rest-btn" data-rest-sec="90">90s</button>
+          <button class="rest-btn" data-rest-sec="120">2m</button>
+        </div>
+      </div>`;
+    }).join('');
+  }else{
+    body=day.ex.map((e,ei)=>exerciseCard(e,di,ei)).join('');
+  }
+
+  c.innerHTML=bar+`<div class="wk-day">
+    ${body}
     <div class="add-ex" data-addex="${di}">
       <div class="add-ex-toggle">+ add your own exercise</div>
       <div class="add-ex-form">
@@ -1225,6 +1382,9 @@ function renderWorkout(){
       </div>
     </div>
   </div>`;
+  $('#ss-toggle').onclick=()=>{superOn=!superOn;if(!superOn)superTriple=false;DB.set('superOn',superOn);DB.set('superTriple',superTriple);renderWorkout()};
+  const trip=$('#ss-triple');if(trip)trip.onclick=()=>{if(!superOn)return;superTriple=!superTriple;DB.set('superTriple',superTriple);renderWorkout()};
+  c.querySelectorAll('.ss-rest [data-rest-sec]').forEach(b=>b.onclick=e=>{e.stopPropagation();startRest(+b.dataset.restSec)});
   wireExerciseCards(c,di,day);
   // add-exercise UI
   const addWrap=c.querySelector('.add-ex');
@@ -1239,26 +1399,34 @@ function renderWorkout(){
   };
   // save all
   $('#wk-saveall').onclick=()=>{
+    captureDrafts();
     let n=0;c.querySelectorAll('.ex-card').forEach(card=>{if(saveExercise(card,di,day,true))n++});
     if(!n){toast('Nothing entered to save');return}
     DB.set('logs',logs);DB.set('checks',checks);renderWorkout();renderLog();renderToday();
     toast(n+' exercise'+(n>1?'s':'')+' saved');
   };
+  // kick off AI muscle-group pairing if needed (async; re-renders when ready)
+  if(superOn && !ssGroups[ssCacheKey()])computeSupersetGroups();
 }
-function exerciseCard(e,di,ei){
+function exerciseCard(e,di,ei,ssLabel){
   const clean=e.name.replace(/ ?\(.*?\)/g,'').trim();
   const last=lastEntry(clean);
   const done=checks[di+'-'+ei];
-  const open=(openEx===di+'-'+ei);
+  const key=di+'-'+ei;
+  const open=(openEx===key);
+  const draft=exDraft[key]||null;
   const lastTxt=last?`Last: ${lastSummary(last)}${last.feel?` · ${esc(FEEL_SHORT[last.feel]||last.feel)}`:''}`:'No history yet';
   const pk=n=>last?(last['kg'+n]||last.wt||''):'';
   const pr=n=>last?(last['s'+n]||''):'';
-  const nsets=setsFor(e);
-  return `<div class="ex-card${done?' done':''}${open?' open':''}" data-i="${ei}" data-nsets="${nsets}">
+  // value = draft if present (persist unsaved typing), else empty
+  const dv=f=>draft&&draft[f]!=null?esc(draft[f]):'';
+  const nsets=draft&&draft.nsets?Math.max(draft.nsets,setsFor(e)):setsFor(e);
+  const draftFlag=draft?' has-draft':'';
+  return `<div class="ex-card${done?' done':''}${open?' open':''}${draftFlag}" data-i="${ei}" data-key="${key}" data-nsets="${nsets}">
     <div class="ex-head">
-      <div class="ex-badge">${done?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#06231a" stroke-width="3.5"><path d="M5 13l4 4L19 7"/></svg>':(ei+1)}</div>
+      <div class="ex-badge">${ssLabel?ssLabel:(done?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#06231a" stroke-width="3.5"><path d="M5 13l4 4L19 7"/></svg>':(ei+1))}</div>
       <div class="ex-main">
-        <div class="ex-name">${esc(clean)}${e.custom?' <span class="cust-tag">added</span>':''}</div>
+        <div class="ex-name">${esc(clean)}${e.custom?' <span class="cust-tag">added</span>':''}${draft&&!done?' <span class="draft-tag">unsaved</span>':''}</div>
         <div class="ex-sub"><b>${esc(e.sets||'')}</b> · <span class="ex-last">${lastTxt}</span></div>
         ${e.note?`<div class="ex-note">${esc(e.note)}</div>`:''}
       </div>
@@ -1272,15 +1440,15 @@ function exerciseCard(e,di,ei){
       <div class="set-rows">
       ${Array.from({length:nsets},(_,k)=>k+1).map(n=>`<div class="set-grid set-line">
         <div class="slabel">${n}</div>
-        <input data-f="kg${n}" inputmode="decimal" placeholder="${pk(n)}">
-        <input data-f="s${n}" inputmode="numeric" placeholder="${pr(n)}">
+        <input data-f="kg${n}" inputmode="decimal" value="${dv('kg'+n)}" placeholder="${pk(n)}">
+        <input data-f="s${n}" inputmode="numeric" value="${dv('s'+n)}" placeholder="${pr(n)}">
       </div>`).join('')}
       </div>
       <button class="add-set" data-add>+ add set</button>
       <div class="feel-wrap">
         <span class="ph">How did it feel? (optional)</span>
         <select data-f="feel" onchange="this.classList.toggle('set',!!this.value)">
-          ${FEEL_OPTS.map(f=>`<option value="${f.v}"${last&&last.feel===f.v?' selected':''}>${f.label}</option>`).join('')}
+          ${FEEL_OPTS.map(f=>{const sel=(draft&&draft.feel!=null)?(draft.feel===f.v):(last&&last.feel===f.v);return `<option value="${f.v}"${sel?' selected':''}>${f.label}</option>`}).join('')}
         </select>
       </div>
       <div class="rest-row">
@@ -1347,6 +1515,7 @@ function saveExercise(card,di,day,silent){
   rec.wt=rec.kg1||rec.kg2||rec.kg3||'';
   logs.push(rec);
   checks[di+'-'+ei]=true;  // saving marks it done
+  delete exDraft[di+'-'+ei];  // clear unsaved draft now it's saved
   return true;
 }
 function findNextUnsaved(di,fromEi){
@@ -1486,6 +1655,7 @@ function renderToday(){
   renderTodayMeals();
   renderPhotos();
   renderReport();  // rep-body + rep-mode now live in Today
+  renderSettings();
 }
 function renderTodayWorkout(){
   const c=$('#today-workout');if(!c)return;
@@ -2183,7 +2353,7 @@ $('#sm-add').onclick=()=>{
    ============================================================ */
 function exportBackup(){
   const data={v:7,user:profile.display,exported:new Date().toISOString(),
-    profile,plan,checks,logs,weights,openDay,logDay,chatHist,recipes,pinned,week,goals,primaryId,weeksByGoal,supps,suppPlan,habits,photos};
+    profile,plan,checks,logs,weights,openDay,logDay,chatHist,recipes,pinned,week,goals,primaryId,weeksByGoal,supps,suppPlan,habits,photos,ssGroups,restTone,keepAwake:keepAwakePref};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
   const d=new Date().toISOString().slice(0,10);
@@ -2205,6 +2375,8 @@ function importBackup(e){
       goals=d.goals||null;primaryId=d.primaryId||null;
       weeksByGoal=d.weeksByGoal||null;supps=d.supps||[];suppPlan=d.suppPlan||null;
       habits=d.habits||{};photos=d.photos||[];
+      ssGroups=d.ssGroups||{};restTone=d.restTone||'double';keepAwakePref=!!d.keepAwake;
+      DB.set('ssGroups',ssGroups);DB.set('restTone',restTone);DB.set('keepAwake',keepAwakePref);
       DB.set('habits',habits);DB.set('photos',photos);
       DB.set('profile',profile);DB.set('plan',plan);DB.set('checks',checks);DB.set('logs',logs);
       DB.set('weights',weights);DB.set('openDay',openDay);DB.set('logDay',logDay);DB.set('chatHist',chatHist);
@@ -2225,6 +2397,27 @@ $('#import-file').onchange=importBackup;
 $('#photo-btn').onclick=()=>$('#photo-file').click();
 $('#photo-file').onchange=e=>{addPhoto(e.target.files[0]);e.target.value=''};
 $('#logout-btn').onclick=logout;
+
+/* ---------- Settings: tone + keep awake ---------- */
+const TONE_OPTS=[{v:'double',l:'Double beep'},{v:'single',l:'Beep'},{v:'chime',l:'Chime'},{v:'silent',l:'Buzz only'}];
+function renderSettings(){
+  const c=$('#tone-chips');if(!c)return;
+  c.innerHTML=TONE_OPTS.map(t=>`<span class="chip${restTone===t.v?' on':''}" data-tone="${t.v}">${t.l}</span>`).join('');
+  c.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>{restTone=ch.dataset.tone;DB.set('restTone',restTone);renderSettings();ensureAudio();playAlert()});
+  const sw=$('#wake-switch');if(sw)sw.classList.toggle('on',keepAwakePref);
+}
+$('#tone-test').onclick=()=>{ensureAudio();playAlert()};
+$('#wake-switch').onclick=()=>{keepAwakePref=!keepAwakePref;DB.set('keepAwake',keepAwakePref);renderSettings();if(keepAwakePref)requestWake();else releaseWake();toast(keepAwakePref?'Screen will stay awake':'Screen awake off')};
+
+/* Wake Lock — keeps screen on while app is open & visible */
+let wakeLock=null;
+async function requestWake(){
+  try{if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen')}}catch(e){}
+}
+function releaseWake(){try{if(wakeLock){wakeLock.release();wakeLock=null}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&keepAwakePref)requestWake();
+});
 $('#whoBtn').onclick=()=>{if(confirm('Sign out of '+(profile.display||'this account')+'? Your data stays saved on this device.'))logout()};
 
 /* ============================================================
@@ -2252,6 +2445,7 @@ function initApp(isNew){
   setMode(plan?plan.mode:'Your Plan');
   // renders
   loadGoalsForm();renderWorkout();renderRoutine();renderLog();renderWeight();renderReport();renderFood();renderSupps();renderToday();
+  if(keepAwakePref)requestWake();
   // land on the right tab
   if(!plan){goTo('goals')}else{goTo('today')}
   window.scrollTo(0,0);
