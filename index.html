@@ -430,6 +430,38 @@
   .photo-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
   .photo-item{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:3/4}
   .photo-item img{width:100%;height:100%;object-fit:cover;display:block}
+  .photo-item{cursor:pointer}
+  /* Fullscreen viewer */
+  .photo-viewer{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.94);display:none;flex-direction:column;align-items:center;justify-content:center}
+  .photo-viewer.open{display:flex}
+  .pv-stage{max-width:100%;max-height:88vh;display:flex;flex-direction:column;align-items:center}
+  .pv-stage img{max-width:96vw;max-height:82vh;object-fit:contain;border-radius:8px}
+  .pv-date{color:#fff;font-family:'Barlow Condensed';font-weight:600;letter-spacing:.06em;margin-top:12px;font-size:15px}
+  .pv-close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:18px;background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:24px;cursor:pointer;line-height:1;z-index:2}
+  .pv-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.12);border:none;color:#fff;width:44px;height:64px;font-size:32px;cursor:pointer;line-height:1}
+  .pv-prev{left:6px;border-radius:0 10px 10px 0}
+  .pv-next{right:6px;border-radius:10px 0 0 10px}
+  /* Compare slider */
+  .photo-compare{position:fixed;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 8px) 14px calc(20px + var(--safe-b));max-width:680px;margin:0 auto}
+  .photo-compare.open{display:flex}
+  .pc-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .pc-head span{font-family:'Barlow Condensed';font-weight:600;font-size:18px}
+  .pc-close{background:none;border:none;color:var(--muted);font-size:26px;line-height:1;cursor:pointer}
+  .pc-pickers{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .pc-sel{flex:1;min-width:0}
+  .pc-vs{color:var(--muted);font-family:'Barlow Condensed';font-weight:600}
+  .pc-stage{position:relative;flex:1;border-radius:12px;overflow:hidden;background:#000;min-height:0;touch-action:none}
+  .pc-img-a{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
+  .pc-clip{position:absolute;inset:0;overflow:hidden;width:50%}
+  .pc-img-b{position:absolute;top:0;left:0;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
+  .pc-handle{position:absolute;top:0;bottom:0;left:50%;width:2px;background:var(--accent);transform:translateX(-1px);pointer-events:none}
+  .pc-grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:var(--accent);color:#06231a;display:grid;place-items:center;font-size:16px;font-weight:700}
+  .pc-line{display:none}
+  .pc-lbl{position:absolute;bottom:10px;font-family:'Barlow Condensed';font-weight:600;font-size:12px;letter-spacing:.05em;color:#fff;background:rgba(0,0,0,.55);padding:3px 8px;border-radius:6px;z-index:2}
+  .pc-lbl-a{left:10px}
+  .pc-lbl-b{right:10px}
+  .pc-range{margin-top:14px}
+  .pc-range::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--accent);cursor:pointer}
   .photo-date{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;font-size:10px;font-family:'Barlow Condensed';font-weight:600;letter-spacing:.04em;padding:10px 6px 4px;text-align:center}
   .photo-del{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);border:none;color:#fff;font-size:16px;line-height:1;cursor:pointer}
   #import-file{display:none}
@@ -517,6 +549,7 @@
       <div class="photo-add">
         <input type="file" id="photo-file" accept="image/*" style="display:none">
         <button class="btn ghost" id="photo-btn">+ Add progress photo</button>
+        <button class="btn ghost" id="photo-compare-btn" style="display:none">Compare</button>
       </div>
       <div class="photo-grid" id="photo-grid"></div>
     </div>
@@ -723,6 +756,36 @@
   <button class="rt-add" id="restPlus">+15s</button>
 </div>
 
+<!-- ============ PHOTO VIEWER (fullscreen) ============ -->
+<div class="photo-viewer" id="photoViewer">
+  <button class="pv-close" id="pvClose">×</button>
+  <button class="pv-nav pv-prev" id="pvPrev">‹</button>
+  <div class="pv-stage"><img id="pvImg" src="" alt="progress photo"><div class="pv-date" id="pvDate"></div></div>
+  <button class="pv-nav pv-next" id="pvNext">›</button>
+</div>
+
+<!-- ============ PHOTO COMPARE (slider) ============ -->
+<div class="photo-compare" id="photoCompare">
+  <div class="pc-head">
+    <button class="pc-close" id="pcClose">×</button>
+    <span>Compare progress</span>
+  </div>
+  <div class="pc-pickers">
+    <select id="pcA" class="pc-sel"></select>
+    <span class="pc-vs">vs</span>
+    <select id="pcB" class="pc-sel"></select>
+  </div>
+  <div class="pc-stage" id="pcStage">
+    <img class="pc-img pc-img-a" id="pcImgA" src="" alt="before">
+    <div class="pc-clip" id="pcClip"><img class="pc-img pc-img-b" id="pcImgB" src="" alt="after"></div>
+    <div class="pc-handle" id="pcHandle"><div class="pc-line"></div><div class="pc-grip">⇄</div></div>
+    <div class="pc-lbl pc-lbl-a" id="pcLblA"></div>
+    <div class="pc-lbl pc-lbl-b" id="pcLblB"></div>
+  </div>
+  <input type="range" id="pcSlider" min="0" max="100" value="50" class="pc-range">
+  <div class="note-line" style="text-align:center;margin-top:8px">Same pose &amp; lighting each time gives the clearest comparison. Drag the slider or the divider.</div>
+</div>
+
 <!-- ============ COACH CHAT OVERLAY ============ -->
 <div class="chat-overlay" id="chat">
   <div class="chat-head">
@@ -760,7 +823,7 @@ const AI_READY = /^https?:\/\//.test(PROXY_URL) && !PROXY_URL.includes("PASTE_YO
    newer, force-reloads once with a fresh URL so iOS/Safari can't serve
    a stale home-screen copy.
    ============================================================ */
-const APP_VERSION = 28;   // <-- increment this each deploy (29, 30, ...)
+const APP_VERSION = 30;   // <-- increment this each deploy (31, 32, ...)
 (function lockPortrait(){
   try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('portrait').catch(()=>{})}catch(e){}
 })();
@@ -1319,11 +1382,14 @@ function supersetGroups(day){
   }
   return seqGroups(day);  // until AI grouping arrives
 }
+let ssComputing=false;
 async function computeSupersetGroups(){
   const day=plan.days[logDay];
   const key=ssCacheKey();
   if(ssGroups[key])return;           // already have it
   if(!AI_READY)return;               // no proxy → keep sequential
+  if(ssComputing)return;             // don't fire multiple times at once
+  ssComputing=true;
   const size=superTriple?3:2;
   const list=day.ex.map((e,i)=>`${i}: ${e.name} (${e.sets||''})`).join('\n');
   const prompt=`You are a strength coach organising a workout into supersets to save time. Group these exercises into supersets of ${size} where it makes sense, pairing by what is SAFE and EFFICIENT to do back-to-back — generally antagonist or non-competing muscle groups (e.g. a push with a pull, or upper with lower), avoiding pairing two heavy compound lifts that share the same muscles or would compromise form. Keep heavy compound barbell lifts alone if pairing would hurt performance (put them in a group by themselves).
@@ -1335,14 +1401,17 @@ Return ONLY valid JSON, no commentary: {"groups":[[0,2],[1,3],...]} where each i
   try{
     const obj=extractJSON(await callClaude([{role:'user',content:prompt}],700));
     let groups=(obj.groups||[]).filter(g=>Array.isArray(g)&&g.length);
-    // validate: every index present exactly once
     const flat=groups.flat();
     const need=day.ex.map((_,i)=>i);
     const ok=flat.length===need.length && need.every(i=>flat.includes(i));
     if(!ok)throw new Error('bad grouping');
     ssGroups[key]=groups;DB.set('ssGroups',ssGroups);
-    renderWorkout();
+    // capture anything typed, then only re-render if the user isn't mid-entry
+    captureDrafts();
+    const busy=openEx!=null || Object.keys(exDraft).length>0;
+    if(!busy)renderWorkout();  // otherwise the new grouping applies next natural render, no disruption
   }catch(e){/* keep sequential fallback silently */}
+  finally{ssComputing=false;}
 }
 function renderWorkout(){
   captureDrafts();  // keep anything typed before we redraw
@@ -1824,17 +1893,64 @@ function computeNudges(){
 /* ---------- Progress photos ---------- */
 function renderPhotos(){
   const c=$('#photo-grid');if(!c)return;
+  $('#photo-compare-btn').style.display=photos.length>=2?'inline-block':'none';
   if(!photos.length){c.innerHTML='<div class="empty" style="grid-column:1/-1">No photos yet. Add one to track visual change over time.</div>';return}
-  c.innerHTML=photos.slice().reverse().map(p=>`<div class="photo-item">
+  // chronological order for the viewer; grid shows newest first
+  c.innerHTML=photos.slice().reverse().map(p=>`<div class="photo-item" data-pv="${p.id}">
     <img src="${p.data}" alt="progress">
     <div class="photo-date">${fmtDate(p.ts)}</div>
     <button class="photo-del" data-pdel="${p.id}">×</button>
   </div>`).join('');
-  c.querySelectorAll('[data-pdel]').forEach(b=>b.onclick=()=>{
+  c.querySelectorAll('[data-pdel]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();
     if(!confirm('Delete this photo?'))return;
     photos=photos.filter(p=>p.id!==b.dataset.pdel);DB.set('photos',photos);renderPhotos();
   });
+  c.querySelectorAll('[data-pv]').forEach(el=>el.onclick=()=>openViewer(el.dataset.pv));
 }
+/* ---------- Fullscreen viewer ---------- */
+let pvIndex=0;
+function photosChrono(){return photos.slice().sort((a,b)=>a.ts-b.ts)}
+function openViewer(id){
+  const arr=photosChrono();
+  pvIndex=Math.max(0,arr.findIndex(p=>p.id===id));
+  showViewer();
+  $('#photoViewer').classList.add('open');
+}
+function showViewer(){
+  const arr=photosChrono();if(!arr.length)return;
+  if(pvIndex<0)pvIndex=0;if(pvIndex>=arr.length)pvIndex=arr.length-1;
+  const p=arr[pvIndex];
+  $('#pvImg').src=p.data;
+  $('#pvDate').textContent=fmtDate(p.ts)+'  ·  '+(pvIndex+1)+'/'+arr.length;
+  $('#pvPrev').style.visibility=pvIndex>0?'visible':'hidden';
+  $('#pvNext').style.visibility=pvIndex<arr.length-1?'visible':'hidden';
+}
+/* ---------- Compare slider ---------- */
+function openCompare(){
+  const arr=photosChrono();if(arr.length<2){toast('Need at least two photos');return}
+  const opts=arr.map((p,i)=>`<option value="${p.id}">${fmtDate(p.ts)}</option>`).join('');
+  const selA=$('#pcA'),selB=$('#pcB');
+  selA.innerHTML=opts;selB.innerHTML=opts;
+  selA.value=arr[0].id;                 // oldest
+  selB.value=arr[arr.length-1].id;      // newest
+  updateCompare();
+  $('#pcSlider').value=50;setClip(50);
+  $('#photoCompare').classList.add('open');
+}
+function photoById(id){return photos.find(p=>p.id===id)}
+function updateCompare(){
+  const a=photoById($('#pcA').value),b=photoById($('#pcB').value);
+  if(a){$('#pcImgA').src=a.data;$('#pcLblA').textContent=fmtDate(a.ts)}
+  if(b){$('#pcImgB').src=b.data;$('#pcLblB').textContent=fmtDate(b.ts)}
+}
+function setClip(pct){
+  $('#pcClip').style.width=pct+'%';
+  $('#pcHandle').style.left=pct+'%';
+  // keep B image at full stage width so it isn't squished by the clip
+  const st=$('#pcStage');if(st){$('#pcImgB').style.width=st.clientWidth+'px'}
+}
+
 function addPhoto(file){
   if(!file)return;
   if(photos.length>=12){toast('Photo limit reached (12) — delete an old one first');return}
@@ -2465,6 +2581,40 @@ $('#bk-import-btn').onclick=()=>$('#import-file').click();
 $('#import-file').onchange=importBackup;
 $('#photo-btn').onclick=()=>$('#photo-file').click();
 $('#photo-file').onchange=e=>{addPhoto(e.target.files[0]);e.target.value=''};
+$('#photo-compare-btn').onclick=openCompare;
+// viewer controls
+$('#pvClose').onclick=()=>$('#photoViewer').classList.remove('open');
+$('#pvPrev').onclick=()=>{pvIndex--;showViewer()};
+$('#pvNext').onclick=()=>{pvIndex++;showViewer()};
+// swipe on the viewer
+(function(){
+  const stage=$('#photoViewer');let sx=0;
+  stage.addEventListener('touchstart',e=>{sx=e.touches[0].clientX},{passive:true});
+  stage.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx;
+    if(Math.abs(dx)>50){if(dx<0){pvIndex++}else{pvIndex--}showViewer()}
+  },{passive:true});
+})();
+// compare controls
+$('#pcClose').onclick=()=>$('#photoCompare').classList.remove('open');
+$('#pcA').onchange=updateCompare;
+$('#pcB').onchange=updateCompare;
+$('#pcSlider').oninput=e=>setClip(+e.target.value);
+// drag the divider directly on the image
+(function(){
+  const stage=$('#pcStage');let dragging=false;
+  const move=clientX=>{
+    const r=stage.getBoundingClientRect();
+    let pct=((clientX-r.left)/r.width)*100;pct=Math.max(0,Math.min(100,pct));
+    setClip(pct);$('#pcSlider').value=pct;
+  };
+  stage.addEventListener('touchstart',e=>{dragging=true;move(e.touches[0].clientX)},{passive:true});
+  stage.addEventListener('touchmove',e=>{if(dragging)move(e.touches[0].clientX)},{passive:true});
+  stage.addEventListener('touchend',()=>{dragging=false});
+  stage.addEventListener('mousedown',e=>{dragging=true;move(e.clientX)});
+  window.addEventListener('mousemove',e=>{if(dragging)move(e.clientX)});
+  window.addEventListener('mouseup',()=>{dragging=false});
+})();
 $('#logout-btn').onclick=logout;
 
 /* ---------- Settings: tone + keep awake ---------- */
