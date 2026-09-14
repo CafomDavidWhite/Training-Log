@@ -760,7 +760,7 @@ const AI_READY = /^https?:\/\//.test(PROXY_URL) && !PROXY_URL.includes("PASTE_YO
    newer, force-reloads once with a fresh URL so iOS/Safari can't serve
    a stale home-screen copy.
    ============================================================ */
-const APP_VERSION = 27;   // <-- increment this each deploy (28, 29, ...)
+const APP_VERSION = 28;   // <-- increment this each deploy (29, 30, ...)
 (function lockPortrait(){
   try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('portrait').catch(()=>{})}catch(e){}
 })();
@@ -1477,9 +1477,26 @@ function exerciseCard(e,di,ei,ssLabel){
 function wireExerciseCards(c,di,day){
   c.querySelectorAll('.ex-card').forEach(card=>{
     const ei=+card.dataset.i;
+    const key=card.dataset.key;
+    // LIVE capture: save every keystroke straight into exDraft immediately,
+    // so nothing can wipe unsaved input regardless of render timing
+    const liveCapture=()=>{
+      if(checks[key])return;
+      const nsets=card.querySelectorAll('.set-rows .set-line').length;
+      const d={nsets};let any=false;
+      const g=f=>{const el=card.querySelector(`[data-f="${f}"]`);return el?el.value:''};
+      for(let n=1;n<=nsets;n++){d['kg'+n]=g('kg'+n);d['s'+n]=g('s'+n);if(d['kg'+n]||d['s'+n])any=true}
+      const fe=card.querySelector('[data-f="feel"]');d.feel=fe?fe.value:'';
+      if(any||d.feel)exDraft[key]=d;else delete exDraft[key];
+    };
+    card.querySelectorAll('.ex-log input,.ex-log select').forEach(el=>{
+      el.addEventListener('input',liveCapture);
+      el.addEventListener('change',liveCapture);
+    });
+    card._liveCapture=liveCapture;  // so add-set can re-bind
     // expand/collapse
     card.querySelector('.ex-head').onclick=()=>{
-      const key=di+'-'+ei;openEx=(openEx===key)?null:key;renderWorkout();
+      openEx=(openEx===key)?null:key;renderWorkout();
     };
     // pre-mark feel
     card.querySelectorAll('select[data-f="feel"]').forEach(s=>{if(s.value)s.classList.add('set')});
@@ -1494,6 +1511,11 @@ function wireExerciseCards(c,di,day){
       const div=document.createElement('div');div.className='set-grid set-line';
       div.innerHTML=`<div class="slabel">${n}</div><input data-f="kg${n}" inputmode="decimal"><input data-f="s${n}" inputmode="numeric">`;
       holder.appendChild(div);
+      // bind live capture to the new inputs and record the extra set immediately
+      if(card._liveCapture){
+        div.querySelectorAll('input').forEach(el=>{el.addEventListener('input',card._liveCapture);el.addEventListener('change',card._liveCapture)});
+        card._liveCapture();
+      }
       wireSuggest(card);
     });
     // final-set suggestion after sets 1 & 2 entered
