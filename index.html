@@ -100,8 +100,13 @@
   .add-ex-form .btn{margin:0}
 
   /* Merged workout+log exercise cards */
-  .ex-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
-  .ex-card.done{border-color:var(--accent-dim)}
+  .ex-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s,background .2s}
+  .ex-card.done{border-color:var(--accent);background:linear-gradient(135deg,rgba(57,217,138,.14),rgba(57,217,138,.05))}
+  .ex-card.done .ex-head{position:relative}
+  .ex-card.done .ex-name{color:var(--muted)}
+  .ex-card.done .ex-sub{opacity:.7}
+  .done-tag{display:none}
+  .ex-card.done .done-tag{display:inline-flex;align-items:center;gap:4px;font-family:'Barlow Condensed';font-weight:700;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#06231a;background:var(--accent);border-radius:5px;padding:2px 7px;margin-left:6px}
   .ex-head{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;user-select:none}
   .ex-badge{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-family:'Barlow Condensed';font-weight:700;font-size:14px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted)}
   .ex-card.done .ex-badge{background:var(--accent);border-color:var(--accent);color:#06231a}
@@ -123,7 +128,7 @@
   .coach-ico svg{color:var(--accent)}
   .draft-tag{font-family:'Barlow Condensed';font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--hot);background:var(--hot-dim);border-radius:4px;padding:1px 5px;vertical-align:1px;margin-left:5px}
   .ex-card.has-draft{border-color:var(--hot)}
-  .ex-card.has-draft.done{border-color:var(--accent-dim)}
+  .ex-card.has-draft.done{border-color:var(--accent)}
   /* Superset mode */
   .ss-bar{display:flex;gap:8px;margin-bottom:12px}
   .ss-toggle{font-family:'Barlow Condensed';font-weight:600;font-size:14px;letter-spacing:.04em;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
@@ -823,7 +828,7 @@ const AI_READY = /^https?:\/\//.test(PROXY_URL) && !PROXY_URL.includes("PASTE_YO
    newer, force-reloads once with a fresh URL so iOS/Safari can't serve
    a stale home-screen copy.
    ============================================================ */
-const APP_VERSION = 30;   // <-- increment this each deploy (31, 32, ...)
+const APP_VERSION = 33;   // <-- increment this each deploy (34, 35, ...)
 (function lockPortrait(){
   try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('portrait').catch(()=>{})}catch(e){}
 })();
@@ -906,7 +911,7 @@ function loadUserData(){
   ssGroups = DB.get('ssGroups',{});
   restTone = DB.get('restTone','double');
   keepAwakePref = DB.get('keepAwake',false);
-  exDraft = {};                       // unsaved drafts don't persist across reloads
+  loadDrafts();                       // restore any unsaved sets from disk (survives reload/crash)
   goals   = DB.get('goals',null);
   primaryId = DB.get('primaryId',null);
   // --- migration: turn an existing single goal into the goals list ---
@@ -1129,7 +1134,12 @@ const EXP_OPTS=['Beginner','Intermediate','Advanced'];
 const EQUIP_OPTS=['Full gym','Dumbbells','Barbell','Kettlebell','Bands','Bodyweight only'];
 let goalSel={goal:'',exp:'',equip:[]};
 let openEx=null;  // currently-expanded exercise "di-ei" on the Workout tab
-let exDraft={};   // in-memory unsaved inputs, keyed "di-ei" → {kg1,s1,...,feel,nsets}
+let exDraft={};   // unsaved inputs, keyed "di-ei" → {kg1,s1,...,feel,nsets}; mirrored to disk
+/* persist drafts to localStorage immediately so nothing is ever lost on
+   re-render, tab switch, reload or crash. Keyed per goal + day. */
+function draftKey(){return 'exDraft_'+(primaryId||'g')+'_'+logDay}
+function saveDrafts(){try{DB.set(draftKey(),exDraft)}catch(e){}}
+function loadDrafts(){exDraft=DB.get(draftKey(),{})||{}}
 let superOn=false, superTriple=false;  // superset mode toggles
 let ssGroups={};  // cached AI muscle-group pairings, keyed by goal+day+size+exercises
 
@@ -1178,9 +1188,10 @@ function renderGoalTabs(){
 }
 function switchGoal(id){
   // save what's on screen into the current goal first
+  captureDrafts();  // persist current goal's drafts before switching
   Object.assign(profile,collectGoals());saveCurrentGoal();
   primaryId=id;DB.set('primaryId',primaryId);
-  exDraft={};openEx=null;  // different exercises now
+  openEx=null;loadDrafts();  // load the new goal/day's saved drafts
   syncPrimary();pointWeekAtGoal();
   loadGoalsForm();renderWorkout();renderRoutine();renderLog();
   setMode(plan?plan.mode:'Your Plan');updateHeaderGoal();
@@ -1350,7 +1361,7 @@ function captureDrafts(){
   const cont=$('#workout-body');if(!cont)return;
   cont.querySelectorAll('.ex-card').forEach(card=>{
     const key=card.dataset.key;if(!key)return;
-    if(checks[key]){delete exDraft[key];return}  // already saved — no draft
+    if(doneToday(card.dataset.exname||'')){delete exDraft[key];return}  // done today — no draft needed
     const nsets=card.querySelectorAll('.set-rows .set-line').length;
     const d={nsets};let any=false;
     const g=f=>{const el=card.querySelector(`[data-f="${f}"]`);return el?el.value:''};
@@ -1358,6 +1369,7 @@ function captureDrafts(){
     const fe=card.querySelector('[data-f="feel"]');d.feel=fe?fe.value:'';
     if(any||d.feel)exDraft[key]=d;else delete exDraft[key];
   });
+  saveDrafts();
 }
 /* group exercises into supersets of 2 (or 3 if extreme). Returns [[ei,ei],...] */
 /* fallback sequential pairing */
@@ -1414,14 +1426,17 @@ Return ONLY valid JSON, no commentary: {"groups":[[0,2],[1,3],...]} where each i
   finally{ssComputing=false;}
 }
 function renderWorkout(){
-  captureDrafts();  // keep anything typed before we redraw
+  captureDrafts();  // keep anything typed before we redraw (also persists to disk)
   const c=$('#workout-body');
   const pills=$('#wk-day-pills');
   if(!plan||!plan.days||!plan.days.length){pills.innerHTML='';needPlan(c,"No plan yet.");$('#wk-saveall-wrap').style.display='none';return}
   if(logDay>=plan.days.length)logDay=0;
+  // make sure this day's saved drafts are loaded into memory (survives reload/crash)
+  const disk=DB.get(draftKey(),{})||{};
+  for(const k in disk){if(!exDraft[k])exDraft[k]=disk[k]}
   // day picker
   pills.innerHTML=plan.days.map((d,i)=>`<button class="pill${i===logDay?' on':''}" data-wd="${i}">${esc(d.t)}</button>`).join('');
-  pills.querySelectorAll('.pill').forEach(b=>b.onclick=()=>{logDay=+b.dataset.wd;DB.set('logDay',logDay);renderWorkout()});
+  pills.querySelectorAll('.pill').forEach(b=>b.onclick=()=>{captureDrafts();logDay=+b.dataset.wd;DB.set('logDay',logDay);loadDrafts();renderWorkout()});
   $('#wk-saveall-wrap').style.display='block';
 
   const di=logDay;const day=plan.days[di];
@@ -1490,7 +1505,7 @@ function renderWorkout(){
 function exerciseCard(e,di,ei,ssLabel){
   const clean=e.name.replace(/ ?\(.*?\)/g,'').trim();
   const last=lastEntry(clean);
-  const done=checks[di+'-'+ei];
+  const done=doneToday(clean);
   const key=di+'-'+ei;
   const open=(openEx===key);
   const draft=exDraft[key]||null;
@@ -1507,7 +1522,7 @@ function exerciseCard(e,di,ei,ssLabel){
     <div class="ex-head">
       <div class="ex-badge">${ssLabel?ssLabel:(done?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#06231a" stroke-width="3.5"><path d="M5 13l4 4L19 7"/></svg>':(ei+1))}</div>
       <div class="ex-main">
-        <div class="ex-name">${esc(clean)}${e.custom?' <span class="cust-tag">added</span>':''}${draft&&!done?' <span class="draft-tag">unsaved</span>':''}</div>
+        <div class="ex-name">${esc(clean)}${e.custom?' <span class="cust-tag">added</span>':''}${draft&&!done?' <span class="draft-tag">unsaved</span>':''}<span class="done-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#06231a" stroke-width="4"><path d="M5 13l4 4L19 7"/></svg>Done today</span></div>
         <div class="ex-sub"><b>${esc(e.sets||'')}</b> · <span class="ex-last">${lastTxt}</span></div>
         ${e.note?`<div class="ex-note">${esc(e.note)}</div>`:''}
       </div>
@@ -1550,13 +1565,13 @@ function wireExerciseCards(c,di,day){
     // LIVE capture: save every keystroke straight into exDraft immediately,
     // so nothing can wipe unsaved input regardless of render timing
     const liveCapture=()=>{
-      if(checks[key])return;
       const nsets=card.querySelectorAll('.set-rows .set-line').length;
       const d={nsets};let any=false;
       const g=f=>{const el=card.querySelector(`[data-f="${f}"]`);return el?el.value:''};
       for(let n=1;n<=nsets;n++){d['kg'+n]=g('kg'+n);d['s'+n]=g('s'+n);if(d['kg'+n]||d['s'+n])any=true}
       const fe=card.querySelector('[data-f="feel"]');d.feel=fe?fe.value:'';
       if(any||d.feel)exDraft[key]=d;else delete exDraft[key];
+      saveDrafts();  // write to localStorage on every keystroke — never lost
     };
     card.querySelectorAll('.ex-log input,.ex-log select').forEach(el=>{
       el.addEventListener('input',liveCapture);
@@ -1641,6 +1656,13 @@ function wireSuggest(card){
   recalc();
 }
 /* returns true if it saved something */
+/* an exercise counts as "done" only if it was logged TODAY — so the
+   done state resets automatically each new calendar day, no manual reset. */
+function isToday(ts){const d=new Date(ts),n=new Date();return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate()}
+function doneToday(exName){
+  const clean=String(exName).replace(/ ?\(.*?\)/g,'').trim();
+  return logs.some(l=>l.ex===clean && isToday(l.ts));
+}
 function saveExercise(card,di,day,silent){
   const ei=+card.dataset.i;
   const clean=day.ex[ei].name.replace(/ ?\(.*?\)/g,'').trim();
@@ -1652,14 +1674,13 @@ function saveExercise(card,di,day,silent){
   if(!any)return false;
   rec.wt=rec.kg1||rec.kg2||rec.kg3||'';
   logs.push(rec);
-  checks[di+'-'+ei]=true;  // saving marks it done
-  delete exDraft[di+'-'+ei];  // clear unsaved draft now it's saved
+  delete exDraft[di+'-'+ei];saveDrafts();  // clear unsaved draft now it's saved
   return true;
 }
 function findNextUnsaved(di,fromEi){
   const day=plan.days[di];
-  for(let i=fromEi+1;i<day.ex.length;i++){if(!checks[di+'-'+i])return i}
-  for(let i=0;i<fromEi;i++){if(!checks[di+'-'+i])return i}
+  for(let i=fromEi+1;i<day.ex.length;i++){if(!doneToday(day.ex[i].name))return i}
+  for(let i=0;i<fromEi;i++){if(!doneToday(day.ex[i].name))return i}
   return null;
 }
 /* renderRoutine kept as an alias so older callers still work */
@@ -1801,9 +1822,9 @@ function renderTodayWorkout(){
   // show the currently-selected log day as "today's session"
   const di=(logDay<plan.days.length)?logDay:0;
   const day=plan.days[di];
-  const done=day.ex.filter((_,ei)=>checks[di+'-'+ei]).length;
+  const done=day.ex.filter(e=>doneToday(e.name)).length;
   c.innerHTML=`<div class="today-card" id="today-go-workout">
-    <div class="tc-main"><div class="tc-t">${esc(day.t)}</div><div class="tc-s">${day.ex.length} exercises · ${done}/${day.ex.length} ticked</div></div>
+    <div class="tc-main"><div class="tc-t">${esc(day.t)}</div><div class="tc-s">${day.ex.length} exercises · ${done}/${day.ex.length} done today</div></div>
     <div class="tc-go">Open ›</div>
   </div>`;
   const el=$('#today-go-workout');if(el)el.onclick=()=>goTo('workout');
